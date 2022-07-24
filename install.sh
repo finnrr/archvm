@@ -53,6 +53,3 @@ btrfs subvolume list -p -t /mnt
 
 # install linux
 pacstrap /mnt base btrfs-progs linux linux-firmware intel-ucode neovim iwd base-devel bc 
-
-
-
