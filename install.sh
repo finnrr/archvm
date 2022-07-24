@@ -2,10 +2,11 @@
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
 
 # make font big
-
+# setfont latarcyrheb-sun32
 
 # check internet
-ping 8.8.8.8 -c 1
+# ping 8.8.8.8 -c 1
+# ip -c a
 
 # update
 pacman -Syy
@@ -26,22 +27,26 @@ mkfs.btrfs -L ROOT /dev/sda2 -f
 mount /dev/sda2 /mnt
 btrfs subvolume create /mnt/root
 btrfs subvolume create /mnt/home
+btrfs subvolume create /mnt/log
+btrfs subvolume create /mnt/pkg
 btrfs subvolume create /mnt/swap
 btrfs subvolume create /mnt/snaps
-btrfs subvolume list /mnt
+# btrfs subvolume list /mnt
 umount -R /mnt
 
 # remount with flags
 mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=root /dev/sda2 /mnt
-mkdir -p /mnt/{boot,home,swap,.snapshots}
+mkdir -p /mnt/{boot,home,swap,tmp,log,pkg,.snapshots}
 mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=home /dev/sda2 /mnt/home
+mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=log /dev/sda2 /mnt/var/log
+mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=pkg /dev/sda2 /mnt/var/cache/pacman/pkg/
 mount -o noatime,nodiratime,compress=no,space_cache=v2,ssd,subvol=swap /dev/sda2 /mnt/swap
 mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=snaps /dev/sda2 /mnt/.snapshots
 mount /dev/sda1 /mnt/boot
 
 # check it
-findmnt -nt btrfs
-lsblk
+# findmnt -nt btrfs
+# lsblk
 
 # make swap
 chattr +C /mnt/swap/
@@ -49,6 +54,9 @@ dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=8196 status=progress
 chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
+
+# lower swap
+sysctl vm.swappiness=10
 
 # check it
 btrfs subvolume list -p -t /mnt
