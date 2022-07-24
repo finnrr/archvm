@@ -2,7 +2,7 @@
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
 
 #make font big
-#setfont latarcyrheb-sun32
+
 
 #check internet
 ping 8.8.8.8 -c 1
@@ -47,6 +47,9 @@ mkswap -U clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 #check it
 btrfs subvolume list -p -t /mnt
+
+#install linux
+pacstrap /mnt base btrfs-progs linux linux-firmware intel-ucode neovim iwd base-devel bc 
 
 
 
