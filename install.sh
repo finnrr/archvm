@@ -13,10 +13,11 @@ pacman -Syy
 # get time
 timedatectl set-ntp true
 
-# partition 100MB boot / rest
+# partition 100MB boot / rest, you'll need more for multiboot or encryption
 sgdisk --zap-all /dev/sda
 sgdisk -n 0:0:+100MiB -t 0:ef00 -c 0:efi /dev/sda
 sgdisk -n 0:0:0 -t 0:8300 -c 0:root /dev/sda
+
 # format
 mkfs.vfat -F32 -n EFI /dev/sda1
 mkfs.btrfs -L ROOT /dev/sda2 -f
@@ -32,12 +33,13 @@ umount -R /mnt
 
 # remount with flags
 mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=root /dev/sda2 /mnt
-mkdir -p /mnt/{boot,home,swap}
+mkdir -p /mnt/{boot,home,swap,.snapshots}
 mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=home /dev/sda2 /mnt/home
 mount -o noatime,nodiratime,compress=no,space_cache=v2,ssd,subvol=swap /dev/sda2 /mnt/swap
+mount -o noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol=snaps /dev/sda2 /mnt/.snapshots
 mount /dev/sda1 /mnt/boot
 
-# have a looksy
+# check it
 findmnt -nt btrfs
 lsblk
 
@@ -51,5 +53,7 @@ swapon /mnt/swap/swapfile
 # check it
 btrfs subvolume list -p -t /mnt
 
-# install linux
-pacstrap /mnt base btrfs-progs linux linux-firmware intel-ucode neovim iwd base-devel bc 
+# generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
+genfstab -L -p /mnt >> /mnt/etc/fstab
+
+# sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
