@@ -59,7 +59,7 @@ swapon /mnt/swap/swapfile
 sysctl vm.swappiness=10
 
 # check it
-btrfs subvolume list -p -t /mnt
+# btrfs subvolume list -p -t /mnt
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 genfstab -L -p /mnt >> /mnt/etc/fstab
