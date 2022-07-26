@@ -3,7 +3,7 @@
 # todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
 # ssh -p 2266 root@localhost
-# sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
+# zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
 # drive partition numbers are hardcoded in script
 
 # set root password
@@ -67,13 +67,13 @@ end_position=$(sgdisk -E $install_drive)
 sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 -c 0:root $install_drive 
 
 # set up encrypted drive 
-echo $drive_pass |cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
+echo -n "$drive_pass" |cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
 --sector-size 4096 --type luks2 "$install_drive"2
 
 # open encrypted drive
 # echo "password" | cryptsetup open "$install_drive"2 $drive_name
 echo Open LUKS partition
-echo $drive_pass |cryptsetup open "$install_drive"2 $drive_name
+echo -n "$drive_pass" |cryptsetup open "$install_drive"2 -$drive_name
 drive_path=/dev/mapper/$drive_name
 
 # format 
