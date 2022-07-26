@@ -35,10 +35,6 @@ if [ -z "$drive_name" ]; then
     vared -p "%F{blue}data partition name?: %f" -c drive_name
 fi
 
-if [ -z "$drive_pass" ]; then
-    vared -p "%F{blue}data partition password?: %f" -c drive_pass
-fi
-
 if [ -z "$swap_size" ]; then
     vared -p "%F{blue}swap size (in MB)?: %f" -c swap_size
 fi
@@ -67,13 +63,12 @@ end_position=$(sgdisk -E $install_drive)
 sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 -c 0:root $install_drive 
 
 # set up encrypted drive 
-echo -n "$drive_pass" |cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
+cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
 --sector-size 4096 --type luks2 "$install_drive"2
 
 # open encrypted drive
-# echo "password" | cryptsetup open "$install_drive"2 $drive_name
 echo Open LUKS partition
-echo -n "$drive_pass" |cryptsetup open "$install_drive"2 -$drive_name
+cryptsetup open "$install_drive"2 $drive_name
 drive_path=/dev/mapper/$drive_name
 
 # format 
