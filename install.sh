@@ -12,6 +12,7 @@
 # clear console
 clear
 
+
 # make font big
 # setfont latarcyrheb-sun32
 # or
