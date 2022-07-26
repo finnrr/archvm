@@ -1,9 +1,9 @@
 # run with following command, warning will wipe drive/data:
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
+# drive partition numbers are hardcoded in script
 
-installdrive=/dev/sda
-drive_name=drive1
-swap_size=8196
+# set root password
+# passwd
 
 # make font big
 # setfont latarcyrheb-sun32
@@ -15,39 +15,70 @@ swap_size=8196
 # ping 8.8.8.8 -c 1
 # ip -c a
 
-# update
-pacman -Syy
+# predefine vars
+install_drive=/dev/sda
+drive_name=drive1
+drive_pass=
+swap_size=8196
 
-# get time
+# ask for vars if they dont exist
+if [ -z $install_drive ]; then
+    lsblk
+    vared -p "%F{blue}drive name?: %f" -c installdrive
+    installdrive=/dev/$install_drive
+fi
+
+if [ -z $drive_name ]; then
+    vared -p "%F{blue}data partition name?: %f" -c drive_name
+fi
+
+if [ -z $drive_pass ]; then
+    vared -p "%F{blue}data partition password?: %f" -c drive_pass
+fi
+
+if [ -z $swap_size ]; then
+    vared -p "%F{blue}swap size?: %f" -c swap_size
+fi
+
+echo Updating Keyring and Mirrors
+pacman -Syy --noconfirm archlinux-keyring reflector
+reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+
+echo Getting Time
 timedatectl set-ntp true
 
 # partition 512MB boot / rest, you'll need more for multiboot or encryption
-wipefs -a $installdrive
-sgdisk --zap-all $installdrive
-sgdisk -n 0:0:+128MiB -a 4096 -t 0:ef00 -c 0:efi $installdrive
+echo Wiping and Formating $install_drive
+wipefs -a $install_drive
+sgdisk --zap-all $install_drive
+sgdisk -n 0:0:+128MiB -a 4096 -t 0:ef00 -c 0:efi $install_drive
+
 # for no encryption:
 # sgdisk -n 0:0:0 -t 0:8300 -c 0:root $installdrive
 
 # make sure rest of drive is in 4096 sized blocks for encryption
-end_position=$(sgdisk -E $installdrive)
-sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 $installdrive
+end_position=$(sgdisk -E $install_drive)
+sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 $install_drive
 
 
 # set up encrypted drive / use below for batch install
-# echo "password" | cryptsetup -q luksFormat /dev/sda2
-cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 --sector-size 4096 --type luks2 "$installdrive"2
+
+echo $drive_pass |cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
+--sector-size 4096 --type luks2 "$install_drive"2
 
 # open encrypted drive
-# echo "password" | cryptsetup open /dev/sda2 drive1
-cryptsetup open "$installdrive"2 $drive_name
-
+# echo "password" | cryptsetup open "$install_drive"2 $drive_name
+echo Open LUKS partition
+echo $drive_pass |cryptsetup open "$install_drive"2 $drive_name
 drive_path=/dev/mapper/$drive_name
 
-# format
-mkfs.vfat -F32 -n EFI "$installdrive"1
+# format 
+echo Formating File System
+mkfs.vfat -F32 -n EFI "$install_drive"1
 mkfs.btrfs -L ROOT $drive_path -f
 
 # mount and make subvolumes to /mnt
+echo Mounting Drives and Making Subvolumes
 mount $drive_path /mnt
 btrfs subvolume create /mnt/root
 btrfs subvolume create /mnt/home
@@ -60,6 +91,7 @@ btrfs subvolume create /mnt/snaps
 umount -R /mnt
 
 # remount with variables
+echo Mounting Subvolumes and Boot
 mount_vars="noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol="
 mount -o "$mount_vars"root $drive_path /mnt
 mkdir -p /mnt/{boot,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
@@ -69,14 +101,21 @@ mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-mount "$installdrive"1 /mnt/boot
+mount "$install_drive"1 /mnt/boot
 
+# disable CoW
+chattr +C /mnt/var/cache/pacman/pkg/
+chattr +C /mnt/var/log
+chattr +C /mnt/var/tmp
+chattr +C /mnt/swap
+
+#make snapshot
+# btrfs subvolume snapshot /mnt /mnt/.snapshots
 # check it
 # findmnt -nt btrfs
 # lsblk
 
 # make swap
-chattr +C /mnt/swap/
 dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$swap_size status=progress
 chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile

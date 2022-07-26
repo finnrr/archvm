@@ -101,6 +101,7 @@ echo export XDG_STATE_HOME="$HOME/.local/state" >> /etc/profile
 
 #update keyring
 pacman -S archlinux-keyring
+reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
 # install drivers
