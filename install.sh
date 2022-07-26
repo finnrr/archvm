@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
 # todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
@@ -25,21 +25,21 @@ drive_name=drive1
 swap_size=8196
 
 # ask for vars if they dont exist
-if [ -z $install_drive ]; then
+if [ -z "$install_drive" ]; then
     lsblk
     vared -p "%F{blue}drive name?: %f" -c installdrive
     installdrive=/dev/$install_drive
 fi
 
-if [ -z $drive_name ]; then
+if [ -z "$drive_name" ]; then
     vared -p "%F{blue}data partition name?: %f" -c drive_name
 fi
 
-if [ -z $drive_pass ]; then
+if [ -z "$drive_pass" ]; then
     vared -p "%F{blue}data partition password?: %f" -c drive_pass
 fi
 
-if [ -z $swap_size ]; then
+if [ -z "$swap_size" ]; then
     vared -p "%F{blue}swap size (in MB)?: %f" -c swap_size
 fi
 
