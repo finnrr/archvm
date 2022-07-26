@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 # Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
 # todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
