@@ -1,4 +1,4 @@
-#!/usr/bin/env -S zsh -e
+#!/usr/bin/env -S zsh -s
 # Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
 # todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
@@ -8,6 +8,9 @@
 
 # set root password
 # passwd
+
+# clear console
+clear
 
 # make font big
 # setfont latarcyrheb-sun32
@@ -44,9 +47,9 @@ if [ -z "$swap_size" ]; then
 fi
 
 # update keyring and mirrors
-echo Updating Keyring and Mirrors
-pacman -Syy --noconfirm archlinux-keyring reflector
-reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+# echo Updating Keyring and Mirrors
+# pacman -Syy --noconfirm archlinux-keyring reflector
+# reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 
 # get UTC time
 echo Getting Time
