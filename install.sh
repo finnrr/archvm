@@ -1,3 +1,5 @@
+# Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
+# todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
 # ssh -p 2266 root@localhost
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
@@ -19,7 +21,6 @@
 # predefine vars
 install_drive=/dev/sda
 drive_name=drive1
-drive_pass=
 swap_size=8196
 
 # ask for vars if they dont exist
@@ -38,13 +39,15 @@ if [ -z $drive_pass ]; then
 fi
 
 if [ -z $swap_size ]; then
-    vared -p "%F{blue}swap size?: %f" -c swap_size
+    vared -p "%F{blue}swap size (in MB)?: %f" -c swap_size
 fi
 
+# update keyring and mirrors
 echo Updating Keyring and Mirrors
 pacman -Syy --noconfirm archlinux-keyring reflector
 reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 
+# get UTC time
 echo Getting Time
 timedatectl set-ntp true
 
@@ -60,11 +63,9 @@ sgdisk -n 0:0:+128MiB -a 4096 -t 0:ef00 -c 0:efi $install_drive
 
 # make sure rest of drive is in 4096 sized blocks for encryption
 end_position=$(sgdisk -E $install_drive)
-sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 $install_drive
+sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 -c 0:root $install_drive 
 
-
-# set up encrypted drive / use below for batch install
-
+# set up encrypted drive 
 echo $drive_pass |cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
 --sector-size 4096 --type luks2 "$install_drive"2
 
@@ -112,12 +113,6 @@ chattr +C /mnt/var/log
 chattr +C /mnt/var/tmp
 chattr +C /mnt/swap
 
-#make snapshot
-# btrfs subvolume snapshot /mnt /mnt/.snapshots
-# check it
-# findmnt -nt btrfs
-# lsblk
-
 # make swap
 echo Making Swap
 dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$swap_size status=progress
@@ -125,7 +120,11 @@ chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 
-# check it
+# commands to check stuff
 # btrfs subvolume list -p -t /mnt
+# findmnt -nt btrfs
+# lsblk
+# fdisk -l 
 
+# now install linux
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
