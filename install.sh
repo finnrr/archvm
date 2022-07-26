@@ -1,4 +1,5 @@
 # run with following command, warning will wipe drive/data:
+# ssh -p 2266 root@localhost
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
 # drive partition numbers are hardcoded in script
 
@@ -48,9 +49,10 @@ echo Getting Time
 timedatectl set-ntp true
 
 # partition 512MB boot / rest, you'll need more for multiboot or encryption
-echo Wiping and Formating $install_drive
+echo Wiping Data From $install_drive
 wipefs -a $install_drive
 sgdisk --zap-all $install_drive
+echo Partitioning $install_drive
 sgdisk -n 0:0:+128MiB -a 4096 -t 0:ef00 -c 0:efi $install_drive
 
 # for no encryption:
@@ -104,6 +106,7 @@ mount -o "$mount_vars"swap $drive_path /mnt/swap
 mount "$install_drive"1 /mnt/boot
 
 # disable CoW
+echo turning off CoW 
 chattr +C /mnt/var/cache/pacman/pkg/
 chattr +C /mnt/var/log
 chattr +C /mnt/var/tmp
@@ -116,6 +119,7 @@ chattr +C /mnt/swap
 # lsblk
 
 # make swap
+echo Making Swap
 dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$swap_size status=progress
 chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile
