@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env -S zsh -e
 # Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
 # todo: add systemd-boot and TMP2 to hold LUKS key
 # run with following command, warning will wipe drive/data:
@@ -35,6 +35,10 @@ if [ -z "$drive_name" ]; then
     vared -p "%F{blue}data partition name?: %f" -c drive_name
 fi
 
+if [ -z "$drive_pass" ]; then
+    vared -p "%F{red}drive password?: %f" -c drive_pass
+fi
+
 if [ -z "$swap_size" ]; then
     vared -p "%F{blue}swap size (in MB)?: %f" -c swap_size
 fi
@@ -63,8 +67,8 @@ end_position=$(sgdisk -E $install_drive)
 sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 -c 0:root $install_drive 
 
 # set up encrypted drive 
-cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
---sector-size 4096 --type luks2 "$install_drive"2
+echo -n "$drive_pass" | cryptsetup luksFormat -qyv --iter-time 500 --key-size 256 \
+--sector-size 4096 --type luks2 "$install_drive"2 -d -
 
 # open encrypted drive
 echo Open LUKS partition
