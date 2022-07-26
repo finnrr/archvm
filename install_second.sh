@@ -1,3 +1,11 @@
+#!/usr/bin/env zsh
+# vars
+install_drive=/dev/sda
+drive_name=drive1
+drive_path=/dev/mapper/$drive_name
+hostname=ComputerX
+User_Name=Bob
+
 # install linux (replace packages as needed, ie. intel for amd)
 pacstrap /mnt base btrfs-progs linux linux-firmware intel-ucode neovim iwd base-devel bc zsh gcc
 
@@ -12,8 +20,7 @@ arch-chroot /mnt
 # create boot EFI (previous entries may have to be deleted)
 bootctl --path=/boot install
 
-drive_path=/dev/sda
-cryptuuid=$(cryptsetup luksUUID "$drive_path"2)
+cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 echo $cryptuuid
 # change: options root=/dev/sda2 rootflags=subvol=root rw resume=/dev/sda2
 cat > /boot/loader/entries/arch.conf << EOL
@@ -21,7 +28,7 @@ title Arch Linux
 linux /vmlinuz-linux
 initrd /intel-ucode.img
 initrd /initramfs-linux.img
-options cryptdevice=UUID="$cryptuuid":root root=/dev/mapper/drive1 rootflags=subvol=root rw resume=/dev/mapper/drive1
+options cryptdevice=UUID="$cryptuuid":root root=$drive_path rootflags=subvol=root rw resume=$drive_path
 EOL
 
 # find offset for swap and hibernation
@@ -29,7 +36,7 @@ cd /tmp
 curl -s "https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts/btrfs_map_physical.c" > bmp.c
 gcc -O2 -o bmp bmp.c
 swp_offset=$(echo "$(./bmp /swap/swapfile | egrep "^0\s+" | cut -f9) / $(getconf PAGESIZE)" | bc) && echo $swp_offset
-echo -e "resume="$drive_path"2+=\" resume_offset=$swp_offset \"" | tee -a /boot/loader/entries/arch.conf
+sed -i  "s#resume=${drive_path}# resume_offset=${swp_offset}#g" /boot/loader/entries/arch.conf
 cd /
 
 # lower swap
@@ -61,7 +68,7 @@ localectl set-locale LANG=en_US.UTF-8
 locale-gen
 
 # set hostname
-echo reactor7 >> /etc/hostname
+echo $hostname >> /etc/hostname
 
 # make hostfile
 echo -e '127.0.1.1 reactor7.localdomain reactor7 \n::1 localhost \n127.0.0.1	localhost' >> /etc/hosts 
@@ -70,7 +77,7 @@ echo -e '127.0.1.1 reactor7.localdomain reactor7 \n::1 localhost \n127.0.0.1	loc
 echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
 echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' /etc/systemd/network/25-wireless.network
 systemctl enable --now systemd-networkd systemd-resolved iwd
-echo -e 'station wlan0 connect <WIFINAME>\<WIFIPASSWORD>\nexit' iwctl 
+echo -e 'station wlan0 connect <WIFINAME> \n<WIFIPASSWORD> \nexit' iwctl 
 systemctl restart systemd-networkd
 
 # tune network dropout time
@@ -92,7 +99,6 @@ XDG_CURRENT_DESKTOP=sway
 EOL
 
 #set vars in profile
-mkdir /etc/zsh
 echo ZDOTDIR=$HOME/.config/zsh >> /etc/zsh/zshenv
 echo export XDG_CONFIG_HOME="$HOME/.config" >> /etc/profile 
 echo export XDG_CACHE_HOME="$HOME/.cache" >> /etc/profile
@@ -100,7 +106,7 @@ echo export XDG_DATA_HOME="$HOME/.local/share" >> /etc/profile
 echo export XDG_STATE_HOME="$HOME/.local/state" >> /etc/profile
 
 #update keyring
-pacman -S archlinux-keyring
+pacman -S archlinux-keyring reflector 
 reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
@@ -108,10 +114,10 @@ pacman -Syu
 pacman --noconfirm -Syu bluez bluez-utils xf86-input-synaptics
 
 # install sway desktop
-pacman -S sway wayland foot 
+pacman -S sway wayland foot
 
-# sound
-pacman -S pipewire pipewire-alsa pipewire-pulse wireplumber 
+# sound pipewire-alsa pipewire-pulse 
+pacman -S pipewire wireplumber 
 
 # utils and programming
 pacman -S python python-pip git wget hwdetect 
@@ -133,9 +139,11 @@ systemctl enable bluetooth.service
 systemctl enable seatd.service 
 
 # add users and set root password
+echo Set Root Password
 passwd root
-useradd -m -G wheel,seat -s /usr/bin/zsh bob
-passwd bob
+echo "Set Password for $User_Name"
+useradd -m -G wheel,seat -s /usr/bin/zsh $User_Name
+passwd $User_Name
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 
