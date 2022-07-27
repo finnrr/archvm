@@ -60,7 +60,7 @@ cd /
 
 # find encrypted drives UUID
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
-echo "$drive_name UUID=$cryptuuid" >> /etc/crypttab.initramfs
+# echo "$drive_name UUID=$cryptuuid" >> /etc/crypttab.initramfs
 
 # create kernal hooks
 echo "setting kernal hooks"
@@ -73,7 +73,7 @@ options cryptdevice.name=UUID="$cryptuuid":$drive_name:allow-discards root=$driv
 EOL
 
 # change /boot/loader/loader.conf
-rm /boot/efi/loader/loader.conf
+# rm /boot/efi/loader/loader.conf
 cat > /boot/efi/loader/loader.conf << EOL
 default  arch.conf
 timeout  4
