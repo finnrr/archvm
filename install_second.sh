@@ -9,23 +9,30 @@ User_Name=Bob
 # get CPU manufacturer
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
     microcode="amd-ucode"
+    echo "AMD CPU chosen"
 else
     microcode="intel-ucode"
+    echo "Intel CPU chosen"
 fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
+echo "installing linux"
 pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
+echo "making fstab"
 genfstab -L -p /mnt >> /mnt/etc/fstab
 
 # enter installation
+echo "entering system"
 arch-chroot /mnt
 
 # set hostname
+echo "setting hostname"
 echo $hostname >> /etc/hostname
 
 # make hostfile
+echo "making hostfile"
 cat > /etc/hosts <<EOL
 127.0.1.1 $hostname.localdomain $hostname 
 ::1 localhost 
@@ -33,23 +40,27 @@ cat > /etc/hosts <<EOL
 EOL 
 
 # change /etc/locale.gen and remove #
+echo "setting location"
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 echo LANG=en_US.UTF-8 >> /etc/locale.conf
 localectl set-locale LANG=en_US.UTF-8
 locale-gen
 
 # add time (timedatectl list-timezones)
+echo "setting time"
 ln -sf /usr/share/zoneinfo/America/Toronto /etc/localtime
 
 # sync clock
 hwclock --systohc
 
 # change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
+echo "setting system hooks"
 sed -i 's/HOOKS=(/HOOKS=(encrypt btrfs resume /' /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -p linux
 
 # create boot EFI (previous entries may have to be deleted)
+echo "generating boot efi"
 bootctl --path=/boot/efi install
 
 # find offset for swap and hibernation
@@ -63,6 +74,8 @@ cd /
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 echo "$drive_name UUID=$cryptuuid" >> /etc/crypttab.initramfs
 
+# create kernal hooks
+echo "setting kernal hooks"
 cat > /boot/efi/loader/entries/arch.conf << EOL
 title Arch Linux
 linux /vmlinuz-linux
