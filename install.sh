@@ -1,16 +1,6 @@
 #!/usr/bin/env -S zsh -s
-# Arch initial setup with UEFI, LUKS, BTRFS, Swap, BTRFS with subvolumes and snapshot
-# todo: add systemd-boot and TMP2 to hold LUKS key
-# run with following command, warning will wipe drive/data:
-# ssh -p 2266 root@localhost
-# zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
-# drive partition numbers are hardcoded in script
-
-# set root password
-# passwd
-
-# clear console
-clear
+# Arch initial setup with UEFI, LUKS, Swap, BTRFS with subvolumes and snapshot
+# todo: add systemd-boot and TMP2 to hold LUKS key (do that in second script)
 
 # make font big
 # setfont latarcyrheb-sun32
@@ -22,10 +12,19 @@ clear
 # ping 8.8.8.8 -c 1
 # ip -c a
 
+# first on machine set root password with 'passwd' then ssh in:
+# ssh -p 2266 root@localhost
+# run with following command, warning will wipe drive/data:
+# zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
+# drive partition numbers are hardcoded in script
+
 # predefine vars
 install_drive=/dev/sda
 drive_name=drive1
 swap_size=8196
+
+# clear console
+clear
 
 # ask for vars if they dont exist
 if [ -z "$install_drive" ]; then
@@ -47,9 +46,9 @@ if [ -z "$swap_size" ]; then
 fi
 
 # update keyring and mirrors
-# echo Updating Keyring and Mirrors
-# pacman -Syy --noconfirm archlinux-keyring reflector
-# reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
+echo Updating Keyring and Mirrors
+pacman -Syy --noconfirm archlinux-keyring reflector
+reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
 # get UTC time
 echo Getting Time
 timedatectl set-ntp true
@@ -59,7 +58,6 @@ echo Wiping Data From $install_drive
 cryptsetup erase $install_drive
 wipefs -a $install_drive
 sgdisk --zap-all $install_drive
-
 
 # badblocks -c 10240 -s -w -t random -v $install_drive
 echo Partitioning $install_drive
