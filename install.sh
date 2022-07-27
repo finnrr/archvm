@@ -78,10 +78,10 @@ echo Open LUKS partition
 echo -n ${drive_pass} |cryptsetup open "$install_drive"2 $drive_name
 drive_path=/dev/mapper/$drive_name
 
-# remove password from env
+# remove password from env (better to set manually)
 unset drive_pass
 
-# format 
+# format file system
 echo Formating File System
 mkfs.vfat -F32 -n EFI "$install_drive"1
 mkfs.btrfs --force -L ROOT $drive_path -f
@@ -123,7 +123,6 @@ chattr +C /mnt/swap
 echo Making Swap
 dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$swap_size status=progress
 chmod 0600 /mnt/swap/swapfile
-btrfs property set /mnt/swap/swapfile compression none #maybe redundant
 mkswap -U clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 
