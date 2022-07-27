@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env -S zsh -s
 # vars
 install_drive=/dev/sda
 drive_name=drive1
