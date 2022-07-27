@@ -15,18 +15,6 @@ else
     echo "Intel CPU chosen"
 fi
 
-# install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
-echo "installing linux"
-pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh
-
-# generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
-echo "making fstab"
-genfstab -L -p /mnt >> /mnt/etc/fstab
-
-# enter installation
-echo "entering system"
-arch-chroot /mnt
-
 # set hostname
 echo "setting hostname"
 echo $hostname >> /etc/hostname

@@ -132,5 +132,26 @@ swapon /mnt/swap/swapfile
 # lsblk
 # fdisk -l 
 
-# now install linux
+# get CPU manufacturer
+if [[ "$CPU" == *"AuthenticAMD"* ]]; then
+    microcode="amd-ucode"
+    echo "AMD CPU chosen"
+else
+    microcode="intel-ucode"
+    echo "Intel CPU chosen"
+fi
+
+# install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
+echo "installing linux"
+pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh
+
+# generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
+echo "making fstab"
+genfstab -L -p /mnt >> /mnt/etc/fstab
+
+# enter installation
+echo "entering system"
+arch-chroot /mnt
+
+# now part 2
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
