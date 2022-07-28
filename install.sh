@@ -148,12 +148,12 @@ pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
-genfstab -L -p /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab
 
 # enter installation
 echo "entering system"
 # arch-chroot /mnt
 
 # now part 2
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"

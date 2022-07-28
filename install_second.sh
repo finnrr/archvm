@@ -81,7 +81,7 @@ cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 
 
 cat > /etc/kernel/cmdline << EOL
-rd.luks.name=<$cryptuuid>=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
+rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
 EOL
 
 # regen
