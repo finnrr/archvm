@@ -133,6 +133,7 @@ swapon /mnt/swap/swapfile
 # fdisk -l 
 
 # get CPU manufacturer
+CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
     microcode="amd-ucode"
     echo "AMD CPU chosen"
@@ -154,4 +155,5 @@ echo "entering system"
 arch-chroot /mnt
 
 # now part 2
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
 # sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
