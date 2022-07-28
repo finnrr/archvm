@@ -2,8 +2,6 @@
 # lower swap
 sysctl vm.swappiness=10
 
-
-
 # enable network, change wifi name and password 
 # echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
 # echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' /etc/systemd/network/25-wireless.network
@@ -77,34 +75,34 @@ useradd -m -G wheel,seat -s /usr/bin/zsh $User_Name
 passwd $User_Name
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-# for thinkpad, max brightness brightness
-echo 852 > /sys/class/backlight/intel_backlight/brightness
+# # for thinkpad, max brightness brightness
+# echo 852 > /sys/class/backlight/intel_backlight/brightness
 
-# for thinkpad, get brightness function keys working
-sed '/^CHANGETHIS$/r'<(cat <<EOF
-video/brightnessup)
-            case "$2" in
-                    BRTUP)
-                        logger 'BrightnessUp button pressed'
-                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` + 106)) > /sys/class/backlight/intel_backlight/brightness
-                        ;;
-                    *)
-                        logger "ACPI action undefined: $2"
-                        ;;
-            esac
-            ;;
+# # for thinkpad, get brightness function keys working
+# sed '/^CHANGETHIS$/r'<(cat <<EOF
+# video/brightnessup)
+#             case "$2" in
+#                     BRTUP)
+#                         logger 'BrightnessUp button pressed'
+#                         echo $((`cat /sys/class/backlight/intel_backlight/brightness` + 106)) > /sys/class/backlight/intel_backlight/brightness
+#                         ;;
+#                     *)
+#                         logger "ACPI action undefined: $2"
+#                         ;;
+#             esac
+#             ;;
 
-    video/brightnessdown)
-            case "$2" in
-                    BRTDN)
-                        logger 'BrightnessDown button pressed'
-                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` - 106)) > /sys/class/backlight/intel_backlight/brightness
-                        ;;
-                    *)
-                        logger "ACPI action undefined: $2"
-                        ;;
-            esac
-            ;;
-EOF
-) -i -- /etc/acpi/handler.sh
+#     video/brightnessdown)
+#             case "$2" in
+#                     BRTDN)
+#                         logger 'BrightnessDown button pressed'
+#                         echo $((`cat /sys/class/backlight/intel_backlight/brightness` - 106)) > /sys/class/backlight/intel_backlight/brightness
+#                         ;;
+#                     *)
+#                         logger "ACPI action undefined: $2"
+#                         ;;
+#             esac
+#             ;;
+# EOF
+# ) -i -- /etc/acpi/handler.sh
 
