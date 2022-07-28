@@ -3,8 +3,8 @@
 install_drive=/dev/sda
 drive_name=drive1
 drive_path=/dev/mapper/$drive_name
-hostname=ComputerX
-User_Name=Bob
+hostname=reactor7
+User_Name=wrk
 
 # get CPU manufacturer
 CPU=$(grep vendor_id /proc/cpuinfo)
@@ -51,7 +51,7 @@ all_hooks="base systemd keyboard autodetect modconf block sd-encrypt filesystems
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
-mkinitcpio -P
+mkinitcpio -Pv
 
 mkdir -p /efi/EFI/Arch
 
@@ -84,10 +84,8 @@ EOL
 mkinitcpio -P 
 
 echo "updating EFI"
-# efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
+efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
 
 # efibootmgr --create --disk "$install_drive"2 --label "ArchLinux-fallback" --loader '\EFI\Arch\linux-fallback.efi' --verbose
 
-# exit
-# umount -R -l /mnt
-# reboot
+exit

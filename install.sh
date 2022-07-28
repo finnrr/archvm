@@ -154,6 +154,11 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo "entering system"
 # arch-chroot /mnt
 
-# now part 2
+# now part 2 for system setup
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
-# sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
+
+# now user and drivers nad some software
+# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
+
+# umount -R -l /mnt
+# reboot
