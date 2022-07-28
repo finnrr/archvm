@@ -16,6 +16,9 @@ else
     echo "Intel CPU chosen"
 fi
 
+# set root password
+passwd
+
 # set hostname
 echo "setting hostname"
 echo $hostname >> /etc/hostname
@@ -48,7 +51,7 @@ all_hooks="base systemd keyboard autodetect modconf block sd-encrypt filesystems
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
-mkinitcpio -p
+mkinitcpio -P
 
 mkdir -p /efi/EFI/Arch
 
@@ -61,12 +64,7 @@ PRESETS=('default')
 
 default_image="/boot/initramfs-linux.img"
 default_efi_image="/efi/EFI/Arch/linux.efi"
-# default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp"
 EOL
-
-# create boot EFI (previous entries may have to be deleted)
-# echo "generating boot efi"
-# bootctl --path=/boot/efi install
 
 # find offset for swap and hibernation
 cd /tmp
@@ -77,8 +75,6 @@ cd /
 
 # find encrypted drives UUID
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
-# echo "$drive_name UUID=$cryptuuid" >> /etc/crypttab.initramfs
-
 
 cat > /etc/kernel/cmdline << EOL
 rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
@@ -87,28 +83,10 @@ EOL
 # regen
 mkinitcpio -P 
 
-efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader 'EFI\Arch\linux.efi' --verbose
+echo "updating EFI"
+# efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
 
-efibootmgr --create --disk "$install_drive"2 --label "ArchLinux-fallback" --loader 'EFI\Arch\linux-fallback.efi' --verbose
-
-# create kernal hooks
-# echo "setting kernal hooks"
-# cat > /boot/efi/loader/entries/arch.conf << EOL
-# title Arch Linux
-# linux /vmlinuz-linux
-# initrd /$microcode.img
-# initrd /initramfs-linux.img
-# options cryptdevice=UUID=$cryptuuid:$drive_name root=$drive_path rootflags=subvol=root rw resume=$drive_path resume_offset=$swp_offset
-# EOL
-
-# change /boot/loader/loader.conf
-# rm /boot/efi/loader/loader.conf
-# cat > /boot/efi/loader/loader.conf << EOL
-# default  arch.conf
-# timeout  4
-# console-mode max
-# editor   no
-# EOL
+# efibootmgr --create --disk "$install_drive"2 --label "ArchLinux-fallback" --loader '\EFI\Arch\linux-fallback.efi' --verbose
 
 # exit
 # umount -R -l /mnt
