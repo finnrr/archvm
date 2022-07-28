@@ -6,15 +6,7 @@ drive_path=/dev/mapper/$drive_name
 hostname=ComputerX
 User_Name=Bob
 
-# get CPU manufacturer
-CPU=$(grep vendor_id /proc/cpuinfo)
-if [[ "$CPU" == *"AuthenticAMD"* ]]; then
-    microcode="amd-ucode"
-    echo "AMD CPU chosen"
-else
-    microcode="intel-ucode"
-    echo "Intel CPU chosen"
-fi
+
 
 # set hostname
 echo "setting hostname"
@@ -44,10 +36,10 @@ hwclock --systohc
 
 # change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
 echo "setting system hooks"
-sed -i 's/HOOKS=(/HOOKS=(encrypt btrfs resume /' /etc/mkinitcpio.conf
+all_hooks="base udev block keyboard encrypt filesystems"
+sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -p linux
-
 # create boot EFI (previous entries may have to be deleted)
 echo "generating boot efi"
 bootctl --path=/boot/efi install
@@ -63,6 +55,16 @@ cd /
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 # echo "$drive_name UUID=$cryptuuid" >> /etc/crypttab.initramfs
 
+# get CPU manufacturer
+CPU=$(grep vendor_id /proc/cpuinfo)
+if [[ "$CPU" == *"AuthenticAMD"* ]]; then
+    microcode="amd-ucode"
+    echo "AMD CPU chosen"
+else
+    microcode="intel-ucode"
+    echo "Intel CPU chosen"
+fi
+
 # create kernal hooks
 echo "setting kernal hooks"
 cat > /boot/efi/loader/entries/arch.conf << EOL
@@ -70,7 +72,7 @@ title Arch Linux
 linux /vmlinuz-linux
 initrd /$microcode.img
 initrd /initramfs-linux.img
-options cryptdevice.name=UUID="$cryptuuid":$drive_name:allow-discards root=$drive_path rootflags=subvol=root rd.luks.options=discard rw resume=$drive_path resume_offset=$swp_offset
+options cryptdevice=UUID=$cryptuuid:$drive_name root=$drive_path rootflags=subvol=root rw resume=$drive_path resume_offset=$swp_offset
 EOL
 
 # change /boot/loader/loader.conf
