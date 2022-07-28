@@ -152,7 +152,7 @@ genfstab -L -p /mnt >> /mnt/etc/fstab
 
 # enter installation
 echo "entering system"
-arch-chroot /mnt
+# arch-chroot /mnt
 
 # now part 2
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"

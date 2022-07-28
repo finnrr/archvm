@@ -23,9 +23,9 @@ echo $hostname >> /etc/hostname
 # make hostfile
 echo "making hostfile"
 cat > /etc/hosts <<EOL
-    127.0.1.1 comp.localdomain comp
-    ::1 localhost 
-    127.0.0.1	localhost
+127.0.1.1 $hostname.localdomain $hostname
+::1 localhost 
+127.0.0.1	localhost
 EOL
 
 # change /etc/locale.gen and remove #
@@ -66,20 +66,20 @@ cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 # create kernal hooks
 echo "setting kernal hooks"
 cat > /boot/efi/loader/entries/arch.conf << EOL
-    title Arch Linux
-    linux /vmlinuz-linux
-    initrd /$microcode.img
-    initrd /initramfs-linux.img
-    options cryptdevice.name=UUID="$cryptuuid":$drive_name:allow-discards root=$drive_path rootflags=subvol=root rd.luks.options=discard rw resume=$drive_path resume_offset=$swp_offset
+title Arch Linux
+linux /vmlinuz-linux
+initrd /$microcode.img
+initrd /initramfs-linux.img
+options cryptdevice.name=UUID="$cryptuuid":$drive_name:allow-discards root=$drive_path rootflags=subvol=root rd.luks.options=discard rw resume=$drive_path resume_offset=$swp_offset
 EOL
 
 # change /boot/loader/loader.conf
 # rm /boot/efi/loader/loader.conf
 cat > /boot/efi/loader/loader.conf << EOL
-    default  arch.conf
-    timeout  4
-    console-mode max
-    editor   no
+default  arch.conf
+timeout  4
+console-mode max
+editor   no
 EOL
 
 # exit
