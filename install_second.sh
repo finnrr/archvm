@@ -10,7 +10,8 @@ User_Name=wrk
 CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
     microcode="amd-ucode"
-    echo "AMD CPU chosen"
+    echo "AMD CPU chosen, loading Virtualbox modules"
+    pacman -S virtualbox-guest-utils
 else
     microcode="intel-ucode"
     echo "Intel CPU chosen"
@@ -87,5 +88,9 @@ echo "updating EFI"
 efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
 
 # efibootmgr --create --disk "$install_drive"2 --label "ArchLinux-fallback" --loader '\EFI\Arch\linux-fallback.efi' --verbose
+
+# temp 
+pacman -S openssh
+echo PermitRootLogin yes >> /etc/ssh/sshd_config
 
 exit
