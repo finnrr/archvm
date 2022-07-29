@@ -110,6 +110,7 @@ mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
+# mount "$install_drive"1 /mnt/efi
 mount "$install_drive"1 /mnt/efi
 
 # disable CoW
@@ -155,9 +156,9 @@ echo "entering system"
 # arch-chroot /mnt
 
 # now part 2 for system setup
-arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
+# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
 
-# now user and drivers nad some software
+# now user and drivers and some software
 # arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # umount -R -l /mnt
