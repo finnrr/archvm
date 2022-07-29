@@ -1,42 +1,6 @@
-
-# lower swap
-sysctl vm.swappiness=10
-
-# enable network, change wifi name and password 
-# echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
-# echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' /etc/systemd/network/25-wireless.network
-# systemctl enable --now systemd-networkd systemd-resolved iwd
-# echo -e 'station wlan0 connect <WIFINAME> \n<WIFIPASSWORD> \nexit' iwctl 
-# systemctl restart systemd-networkd
-
-# tune network dropout time
-mkdir /etc/systemd/system/systemd-networkd-wait-online.service.d
-cat > /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf <<EOL
-[Service]
-ExecStart=
-ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any -timeout=30
-EOL
-
-#set global vars in /etc/environment
-cat > /etc/environment << EOL
-GDK_BACKEND=wayland
-CLUTTER_BACKEND=wayland
-MOZ_ENABLE_WAYLAND=1
-EDITOR=nvim
-VISUAL=nvim
-XDG_CURRENT_DESKTOP=sway
-EOL
-
-#set vars in profile
-echo ZDOTDIR=$HOME/.config/zsh >> /etc/zsh/zshenv
-echo export XDG_CONFIG_HOME="$HOME/.config" >> /etc/profile 
-echo export XDG_CACHE_HOME="$HOME/.cache" >> /etc/profile
-echo export XDG_DATA_HOME="$HOME/.local/share" >> /etc/profile
-echo export XDG_STATE_HOME="$HOME/.local/state" >> /etc/profile
-
 #update keyring
 pacman -S archlinux-keyring reflector 
-reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
 # install drivers
@@ -52,7 +16,7 @@ pacman -S pipewire wireplumber
 pacman -S python python-pip git wget hwdetect 
 
 # software
-pacman -S firefox discord 
+# pacman -S firefox discord 
 
 # remove install files
 pacman -Scc

@@ -54,22 +54,30 @@ sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -P
 
-bootctl install
-
-exit
-
+# bootctl --esp-path=/efi
 # bootctl --esp-path=/boot install
 
-cat > /boot/loader/loader.conf <<EOF
-default arch.conf
-timeout 3
-console-mode max
-editor yes
-EOF
+# cat > /efi/loader/loader.conf <<EOF
+# default arch.conf
+# timeout 3
+# console-mode max
+# editor yes
+# EOF
 
-# mkdir -p /efi/EFI/Arch
+mkdir -p /efi/EFI/Arch
 
-# # ALL_microcode=(/boot/$microcode.img)
+# ALL_microcode=(/boot/$microcode.img)
+cat > /etc/mkinitcpio.d/linux.preset << EOL
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux"
+
+PRESETS=('default')
+
+default_image="/boot/initramfs-linux.img"
+default_efi_image="/efi/EFI/Arch/linux.efi"
+EOL
+
+
 # cat > /etc/mkinitcpio.d/linux.preset << EOL
 # ALL_config="/etc/mkinitcpio.conf"
 # ALL_kver="/boot/vmlinuz-linux"
@@ -77,7 +85,7 @@ EOF
 # PRESETS=('default')
 
 # default_image="/boot/initramfs-linux.img"
-# default_efi_image="/efi/EFI/Arch/linux.efi"
+# default_efi_image="/efi/EFI/systemd/systemd-bootx64.efi"
 # EOL
 
 # find offset for swap and hibernation
@@ -94,25 +102,15 @@ cat > /etc/kernel/cmdline << EOL
 rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
 EOL
 
-cat > /boot/loader/entries/arch.conf << EOL
-title Arch
-linux /vmlinuz-linux
-initrd /$microcode.img
-initrd /initramfs-linux.img
-rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
-EOL
-
-# regen
 mkinitcpio -P 
 
 echo "updating EFI"
 
-# efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
+efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
 
 # efibootmgr --create --disk "$install_drive"2 --label "ArchLinux-fallback" --loader '\EFI\Arch\linux-fallback.efi' --verbose
 
 # system should now be bootable, but to connect add ssh:
-
 # install ssh
 pacman -S openssh
 
@@ -219,6 +217,43 @@ EOL
 # > Output e.g.: 6 0 0 0 1 (1 as the final integer)
 
 
+# lower swap
+sysctl vm.swappiness=10
+
+# enable network, change wifi name and password 
+# echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
+echo -e '[Match]\nName=enp0s3\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
+echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' /etc/systemd/network/25-wireless.network
+systemctl enable --now systemd-networkd systemd-resolved iwd 
+# echo -e 'station wlan0 connect <WIFINAME> \n<WIFIPASSWORD> \nexit' iwctl 
+# systemctl restart systemd-networkd
+
+# ln -rsf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf  
+
+# tune network dropout time
+mkdir /etc/systemd/system/systemd-networkd-wait-online.service.d
+cat > /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf <<EOL
+[Service]
+ExecStart=
+ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any -timeout=30
+EOL
+
+#set global vars in /etc/environment
+cat > /etc/environment << EOL
+GDK_BACKEND=wayland
+CLUTTER_BACKEND=wayland
+MOZ_ENABLE_WAYLAND=1
+EDITOR=nvim
+VISUAL=nvim
+XDG_CURRENT_DESKTOP=sway
+EOL
+
+#set vars in profile
+echo ZDOTDIR=$HOME/.config/zsh >> /etc/zsh/zshenv
+echo export XDG_CONFIG_HOME="$HOME/.config" >> /etc/profile 
+echo export XDG_CACHE_HOME="$HOME/.cache" >> /etc/profile
+echo export XDG_DATA_HOME="$HOME/.local/share" >> /etc/profile
+echo export XDG_STATE_HOME="$HOME/.local/state" >> /etc/profile
 
 exit
 
