@@ -54,9 +54,9 @@ sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -P
 
-bootctl --esp-path=/efi install
+bootctl --esp-path=/boot install
 
-cat > /efi/loader/loader.conf <<EOF
+cat > /boot/loader/loader.conf <<EOF
 default arch.conf
 timeout 3
 console-mode max
@@ -90,10 +90,10 @@ cat > /etc/kernel/cmdline << EOL
 rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
 EOL
 
-cat > /efi/loader/entries/arch.conf << EOL
+cat > /boot/loader/entries/arch.conf << EOL
 title Arch
 linux /vmlinuz-linux
-initrd /intel-ucode.img (or /amd-ucode.img for AMD CPU)
+initrd /$microcode.img
 initrd /initramfs-linux.img
 rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
 EOL

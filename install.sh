@@ -103,7 +103,7 @@ umount -R /mnt
 echo Mounting Subvolumes and Boot
 mount_vars="noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol="
 mount -o "$mount_vars"root $drive_path /mnt
-mkdir -p /mnt/{efi,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
+mkdir -p /mnt/{boot,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
 mount -o "$mount_vars"home $drive_path /mnt/home
 mount -o "$mount_vars"tmp $drive_path /mnt/var/tmp
 mount -o "$mount_vars"log $drive_path /mnt/var/log
@@ -111,7 +111,7 @@ mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
 # mount "$install_drive"1 /mnt/efi
-mount "$install_drive"1 /mnt/efi
+mount "$install_drive"1 /mnt/boot
 
 # disable CoW
 echo turning off CoW 
