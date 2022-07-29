@@ -6,12 +6,15 @@ drive_path=/dev/mapper/$drive_name
 hostname=reactor7
 User_Name=wrk
 
+# set root password
+passwd
+
 # get CPU manufacturer
 CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
     microcode="amd-ucode"
     echo "AMD CPU chosen, loading Virtualbox modules"
-    pacman -S virtualbox-guest-utils
+    pacman -S virtualbox-guest-utils --noconfirm
 else
     microcode="intel-ucode"
     echo "Intel CPU chosen"
@@ -54,9 +57,6 @@ sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -P
 
-# bootctl --esp-path=/efi
-# bootctl --esp-path=/boot install
-
 # cat > /efi/loader/loader.conf <<EOF
 # default arch.conf
 # timeout 3
@@ -76,17 +76,6 @@ PRESETS=('default')
 default_image="/boot/initramfs-linux.img"
 default_efi_image="/efi/EFI/Arch/linux.efi"
 EOL
-
-
-# cat > /etc/mkinitcpio.d/linux.preset << EOL
-# ALL_config="/etc/mkinitcpio.conf"
-# ALL_kver="/boot/vmlinuz-linux"
-
-# PRESETS=('default')
-
-# default_image="/boot/initramfs-linux.img"
-# default_efi_image="/efi/EFI/systemd/systemd-bootx64.efi"
-# EOL
 
 # find offset for swap and hibernation
 cd /tmp
@@ -130,7 +119,7 @@ systemctl enable --now sshd
 # UEFI Keys
 
 # generate keys 
-pacman -S efitools sbsigntools
+pacman -S --noconfirm efitools sbsigntools 
 
 # gen random key
 cd /root
@@ -175,24 +164,24 @@ When = PostTransaction
 Exec = /usr/bin/systemctl restart systemd-boot-update.service
 EOL
 
-# cat > /etc/pacman.d/hooks/99-secureboot.hook <<EOL
-# [Trigger]
-# Operation = Install
-# Operation = Upgrade
-# Type = Path
-# Target = usr/lib/modules/*/vmlinuz
-# Target = usr/lib/initcpio/*
-# [Action]
-# Description = Signing EFI executables for SecureBoot...
-# When = PostTransaction
-# Exec = /usr/bin/find /efi/EFI/Arch -type f ( -name *.efi ) \
-# -exec /usr/bin/sh -c 'if ! /usr/bin/sbverify --list {} 2>/dev/null \
-# | /usr/bin/grep -q "signature certificates"; then /usr/bin/sbsign \
-# --key /root/db.key --cert /root/db.crt -- output "\$1" "\$1"; fi' _ {} ;
-# Depends = sbsigntools
-# Depends = findutils
-# Depends = grep
-# EOL
+cat > /etc/pacman.d/hooks/99-secureboot.hook <<EOL
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Path
+Target = usr/lib/modules/*/vmlinuz
+Target = usr/lib/initcpio/*
+[Action]
+Description = Signing EFI executables for SecureBoot...
+When = PostTransaction
+Exec = /usr/bin/find /efi/EFI/Arch -type f ( -name *.efi ) \
+-exec /usr/bin/sh -c 'if ! /usr/bin/sbverify --list {} 2>/dev/null \
+| /usr/bin/grep -q "signature certificates"; then /usr/bin/sbsign \
+--key /root/db.key --cert /root/db.crt -- output "\$1" "\$1"; fi' _ {} ;
+Depends = sbsigntools
+Depends = findutils
+Depends = grep
+EOL
 
 
 # secure boot
