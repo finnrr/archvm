@@ -20,9 +20,6 @@ else
     echo "Intel CPU chosen"
 fi
 
-# set root password
-passwd
-
 # set hostname
 echo "setting hostname"
 echo $hostname >> /etc/hostname

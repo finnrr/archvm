@@ -1,5 +1,5 @@
 #update keyring
-pacman -S archlinux-keyring reflector 
+pacman -S --noconfirm archlinux-keyring reflector 
 reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
@@ -7,13 +7,13 @@ pacman -Syu
 pacman --noconfirm -Syu bluez bluez-utils xf86-input-synaptics
 
 # install sway desktop
-pacman -S sway wayland foot
+pacman -S --noconfirm sway wayland foot
 
 # sound pipewire-alsa pipewire-pulse 
-pacman -S pipewire wireplumber 
+pacman -S --noconfirm pipewire wireplumber 
 
 # utils and programming
-pacman -S python python-pip git wget hwdetect 
+pacman -S --noconfirm python python-pip git wget hwdetect 
 
 # software
 # pacman -S firefox discord 
@@ -32,8 +32,6 @@ systemctl enable bluetooth.service
 systemctl enable seatd.service 
 
 # add users and set root password
-echo Set Root Password
-passwd root
 echo "Set Password for $User_Name"
 useradd -m -G wheel,seat -s /usr/bin/zsh $User_Name
 passwd $User_Name
