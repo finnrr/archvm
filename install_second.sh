@@ -48,13 +48,17 @@ hwclock --systohc
 
 # change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
 echo "setting system hooks"
-all_hooks="base systemd keyboard autodetect modconf block sd-encrypt filesystems fsck"
+all_hooks="base systemd keyboard autodetect modconf block sd-encrypt btrfs filesystems fsck"
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 # base systemd autodetect keyboard  modconf block sd-encrypt filesystems resume fsck
 mkinitcpio -P
 
-bootctl --esp-path=/boot install
+bootctl install
+
+exit
+
+# bootctl --esp-path=/boot install
 
 cat > /boot/loader/loader.conf <<EOF
 default arch.conf
