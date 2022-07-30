@@ -1,4 +1,4 @@
-#!/usr/bin/env -S zsh -s
+#!/usr/bin/zsh
 test1="one"
 test2="two"
 test3="three"
