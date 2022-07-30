@@ -31,6 +31,9 @@ useradd -m -G wheel -s /usr/bin/zsh $user_name
 echo "$user_name:$user_pass" | arch-chroot /mnt chpasswd 
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
+# make some dirs
+mkdir /home/$user_name/{.config/zsh,}
+
 # SOFTWARE TIME:
 
 sed -i 's/#UseSyslog/UseSyslog/' /etc/pacman.conf 
@@ -45,7 +48,7 @@ reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
 # install drivers
-pacman --noconfirm -Syu bluez bluez-utils xf86-input-synaptics
+pacman --noconfirm -Syu bluez bluez-utils xf86-input-synaptics sof-firmware
 
 # install sway desktop
 pacman -S --noconfirm sway wayland foot
