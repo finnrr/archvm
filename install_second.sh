@@ -98,20 +98,23 @@ efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\
 
 # system should now be bootable, but to connect add ssh:
 # install ssh
-pacman -S openssh
+pacman -S --noconfirm openssh 
 
 # generate ssh keys
 ssh-keygen -A
+
+
+
+# start ssh server
+systemctl enable --now sshd
 
 # point to keys
 cat > /etc/ssh/sshd_config <<EOL
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_ecdsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key
+PermitRootLogin yes
 EOL
-
-# start ssh server
-systemctl enable --now sshd
 
 # UEFI Keys
 
@@ -207,9 +210,9 @@ EOL
 sysctl vm.swappiness=10
 
 # enable network, change wifi name and password 
-# echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
-echo -e '[Match]\nName=enp0s3\n[Network]\nDHCP=yes' /etc/systemd/network/20-wired.network
-echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' /etc/systemd/network/25-wireless.network
+# echo -e '[Match]\nName=enp0s31f6\n[Network]\nDHCP=yes' > /etc/systemd/network/20-wired.network
+echo -e '[Match]\nName=enp0s3\n[Network]\nDHCP=yes' > /etc/systemd/network/20-wired.network
+echo -e '[Match]\nName=wlan0\n[Network]\nDHCP=yes' > /etc/systemd/network/25-wireless.network
 systemctl enable --now systemd-networkd systemd-resolved iwd 
 # echo -e 'station wlan0 connect <WIFINAME> \n<WIFIPASSWORD> \nexit' iwctl 
 # systemctl restart systemd-networkd
@@ -235,11 +238,11 @@ XDG_CURRENT_DESKTOP=sway
 EOL
 
 #set vars in profile
-echo ZDOTDIR=$HOME/.config/zsh >> /etc/zsh/zshenv
-echo export XDG_CONFIG_HOME="$HOME/.config" >> /etc/profile 
-echo export XDG_CACHE_HOME="$HOME/.cache" >> /etc/profile
-echo export XDG_DATA_HOME="$HOME/.local/share" >> /etc/profile
-echo export XDG_STATE_HOME="$HOME/.local/state" >> /etc/profile
+echo 'ZDOTDIR=$HOME/.config/zsh' >> /etc/zsh/zshenv
+echo 'export XDG_CONFIG_HOME="$HOME/.config"' >> /etc/profile
+echo 'export XDG_CACHE_HOME="$HOME/.cache"' >> /etc/profile
+echo 'export XDG_DATA_HOME="$HOME/.local/share"' >> /etc/profile
+echo 'export XDG_STATE_HOME="$HOME/.local/state"' >> /etc/profile
 
 exit
 
