@@ -1,7 +1,7 @@
 #!/usr/bin/env -S zsh -s
 
 # Time, Bootloader and Networking/SSH
-source  /mnt/root/install_vars.txt
+source  /root/install_vars.txt
 # vars
 # install_drive=$1
 echo "install_drive is $install_drive"
