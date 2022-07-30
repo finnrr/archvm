@@ -1,6 +1,9 @@
 #!/usr/bin/env -S zsh -s
 # Arch initial setup with UEFI, LUKS, Swap, BTRFS with subvolumes and snapshot
-# todo: add systemd-boot and TMP2 to hold LUKS key (do that in second script)
+# todo: add systemd-boot(not possible without efifs driver?),TMP2 to hold LUKS key (do that in other script)
+
+# clear console
+clear
 
 # make font big
 # setfont latarcyrheb-sun32
@@ -16,15 +19,18 @@
 # ssh -p 2266 root@localhost
 # run with following command, warning will wipe drive/data:
 # zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
-# drive partition numbers are hardcoded in script
+# drive partition numbers are hardcoded in script, this is for single drive.
 
 # predefine vars
 install_drive=/dev/sda
 drive_name=drive1
 swap_size=8196
-
-# clear console
-clear
+user_name=wrk
+hostname=reactor7
+eth_name=enp0s3
+wifi_name=Bell187
+my_location=America/Toronto
+# laptop eth is enp0s31f6
 
 # ask for vars if they dont exist
 if [ -z "$install_drive" ]; then
@@ -45,22 +51,39 @@ if [ -z "$swap_size" ]; then
     vared -p "%F{blue}swap size (in MB)?: %f" -c swap_size
 fi
 
+if [ -z "$user_name" ]; then
+    vared -p "%F{blue}user name??: %f" -c user_name
+fi
+
+if [ -z "$user_pass" ]; then
+    vared -p "%F{blue}user password?: %f" -c user_pass
+fi
+
+if [ -z "$root_pass" ]; then
+    vared -p "%F{blue}root password?: %f" -c root_pass
+fi
+
+if [ -z "$wifi_pass" ]; then
+    vared -p "%F{blue}wifi password?: %f" -c wifi_pass
+fi
+
 # update keyring and mirrors
-echo Updating Keyring and Mirrors
+echo "..Updating Keyring and Mirrors"
+sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
 pacman -Syy --noconfirm archlinux-keyring reflector
 reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
 # get UTC time
-echo Getting Time
+echo "..Getting Time"
 timedatectl set-ntp true
 
 # partition 512MB boot / rest, you'll need more for multiboot or encryption
-echo Wiping Data From $install_drive
+echo "..Wiping Data From $install_drive"
 cryptsetup erase $install_drive
 wipefs -a $install_drive
 sgdisk --zap-all $install_drive
 
 # badblocks -c 10240 -s -w -t random -v $install_drive
-echo Partitioning $install_drive
+echo "..Partitioning $install_drive"
 sgdisk -n 0:0:+256MiB -a 4096 -t 0:ef00 -c 0:efi $install_drive
 
 # for no encryption:
@@ -74,7 +97,7 @@ sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300
 echo -n ${drive_pass} | cryptsetup luksFormat -q --iter-time 500 --key-size 256 --sector-size 4096 --type luks2 "$install_drive"2 -d -
 
 # open encrypted drive
-echo Open LUKS partition
+echo "..Open LUKS partition"
 echo -n ${drive_pass} |cryptsetup open "$install_drive"2 $drive_name
 drive_path=/dev/mapper/$drive_name
 
@@ -82,12 +105,12 @@ drive_path=/dev/mapper/$drive_name
 unset drive_pass
 
 # format file system
-echo Formating File System
+echo "..Formating File System"
 mkfs.vfat -F32 -n EFI "$install_drive"1
 mkfs.btrfs --force -L ROOT $drive_path -f
 
 # mount and make subvolumes to /mnt
-echo Mounting Drives and Making Subvolumes
+echo "..Making Subvolumes"
 mount $drive_path /mnt
 btrfs subvolume create /mnt/root
 btrfs subvolume create /mnt/home
@@ -100,7 +123,7 @@ btrfs subvolume create /mnt/snaps
 umount -R /mnt
 
 # remount with variables
-echo Mounting Subvolumes and Boot
+echo "..Mounting Subvolumes and Boot"
 mount_vars="noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol="
 mount -o "$mount_vars"root $drive_path /mnt
 mkdir -p /mnt/{efi,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
@@ -110,18 +133,17 @@ mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-# mount "$install_drive"1 /mnt/efi
 mount "$install_drive"1 /mnt/efi
 
 # disable CoW
-echo turning off CoW 
+echo "..turning off CoW" 
 chattr +C /mnt/var/cache/pacman/pkg/
 chattr +C /mnt/var/log
 chattr +C /mnt/var/tmp
 chattr +C /mnt/swap
 
 # make swap
-echo Making Swap
+echo "..Making Swap"
 dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$swap_size status=progress
 chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile
@@ -145,21 +167,28 @@ fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
 echo "installing linux"
-pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh efibootmgr
+pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh efibootmgr openssh efitools sbsigntools
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# enter installation
-echo "entering system"
-# arch-chroot /mnt
+# add time (timedatectl list-timezones)
+echo "setting time"
+arch-chroot  /mnt ln -sf /usr/share/zoneinfo/$my_location /etc/localtime
+
+#set root password
+echo "root:$root_pass" | arch-chroot /mnt chpasswd 
 
 # now part 2 for system setup
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)"
+echo "
+vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" $vars
 
 # now user and drivers and some software
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
+vars="$_ $user_name $user_pass"
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # umount -R -l /mnt
 # reboot
+
