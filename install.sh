@@ -22,6 +22,7 @@ clear
 # drive partition numbers are hardcoded in script, this is for single drive.
 
 # predefine vars
+set -a
 install_drive=/dev/sda
 drive_name=drive1
 swap_size=8196
@@ -181,14 +182,16 @@ arch-chroot  /mnt ln -sf /usr/share/zoneinfo/$my_location /etc/localtime
 echo "root:$root_pass" | arch-chroot /mnt chpasswd 
 
 # now part 2 for system setup
-echo "
-vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
-arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" $vars
-
+export > /mnt/root/install_vars.txt
+echo "..running second script: location, bootloader and networking."
+# vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
+ 
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" # $vars
+shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
 # now user and drivers and some software
+echo "..running third script: drivers, settings, users and software"
 vars="$_ $user_name $user_pass"
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # umount -R -l /mnt
 # reboot
-

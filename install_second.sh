@@ -1,21 +1,21 @@
 #!/usr/bin/env -S zsh -s
 
 # Time, Bootloader and Networking/SSH
-
+source  /mnt/root/install_vars.txt
 # vars
-install_drive=$1
-echo "install_drive is $1"
-drive_name=$2
-echo "drive name is $2"
-drive_path=$3
-echo "drive path is $3"
-hostname=$4
-echo "hostname is $4"
-eth_name=$5
-echo "ethernet adapter is $5"
-wifi_name=$6
-echo "wifi adapter is $6"
-wifi_pass=$7
+# install_drive=$1
+echo "install_drive is $install_drive"
+# drive_name=$2
+echo "drive name is $drive_name"
+# drive_path=$3
+echo "drive path is $drive_path"
+# hostname=$4
+echo "hostname is $hostname"
+# eth_name=$5
+echo "ethernet adapter is $eth_name"
+# wifi_name=$6
+echo "wifi adapter is $wifi_name"
+# wifi_pass=$7
 echo "wifi password is ____"
 
 # get CPU manufacturer (my desktop is AMD and laptop is intel)
