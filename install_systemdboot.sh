@@ -1,17 +1,6 @@
 #!/usr/bin/env -S zsh -s
 
 
-install_drive=/dev/sda
-drive_name=drive1
-drive_path=/dev/mapper/$drive_name
-swap_size=4096
-# 8196
-user_name=wrk
-hostname=reactor7
-eth_name=enp0s3
-wifi_name=Bell187
-my_location=America/Toronto
-
 
 # Time, Bootloader and Networking/SSH
 source  /root/install_vars.txt
@@ -68,7 +57,10 @@ echo "..setting system hooks"
 all_hooks="base systemd keyboard autodetect modconf block sd-vconsole sd-encrypt filesystems fsck"
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
-mkinitcpio -P
+
+mkinitcpio -P 
+
+bootctl --path=/boot install
 
 # find offset for swap and hibernation
 echo "..finding swap offset"
