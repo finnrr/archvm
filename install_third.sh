@@ -1,12 +1,35 @@
+#!/usr/bin/env -S zsh -s
 
-user_name=$1
-echo "..user name is $1"
-user_pass=$2
-echo "..user password is set"
+# SYSTEM TUNING
 
-# SYSTEM SETUP:
+# lower swapiness
+sysctl vm.swappiness=10
 
-#set global vars in /etc/environment
+# disable clearing of boot messages:
+cat > /etc/systemd/system/getty@tty1.service.d/noclear.conf <<EOL
+[Service]
+TTYVTDisallocate=no
+EOL
+
+# remove beeper
+echo "disable internal speaker"
+rmmod pcspkr
+echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
+
+# TTY font
+pacman -S --noconfirm tamsyn-font
+setfont tamsyn10x20r
+echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
+
+# set vars in profile
+echo "..Setting Default Directories"
+echo 'ZDOTDIR=$HOME/.config/zsh' >> /etc/zsh/zshenv
+echo 'export XDG_CONFIG_HOME="$HOME/.config"' >> /etc/profile
+echo 'export XDG_CACHE_HOME="$HOME/.cache"' >> /etc/profile
+echo 'export XDG_DATA_HOME="$HOME/.local/share"' >> /etc/profile
+echo 'export XDG_STATE_HOME="$HOME/.local/state"' >> /etc/profile
+
+# set global vars in /etc/environment
 echo "..Setting Global Vars"
 cat > /etc/environment << EOL
 GDK_BACKEND=wayland
@@ -16,66 +39,6 @@ EDITOR=nvim
 VISUAL=nvim
 XDG_CURRENT_DESKTOP=sway
 EOL
-
-#set vars in profile
-echo "..Setting Default Directories"
-echo 'ZDOTDIR=$HOME/.config/zsh' >> /etc/zsh/zshenv
-echo 'export XDG_CONFIG_HOME="$HOME/.config"' >> /etc/profile
-echo 'export XDG_CACHE_HOME="$HOME/.cache"' >> /etc/profile
-echo 'export XDG_DATA_HOME="$HOME/.local/share"' >> /etc/profile
-echo 'export XDG_STATE_HOME="$HOME/.local/state"' >> /etc/profile
-
-# add users and set root password
-echo "..add user $user_name"
-useradd -m -G wheel -s /usr/bin/zsh $user_name
-echo "$user_name:$user_pass" | arch-chroot /mnt chpasswd 
-echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# make some dirs
-mkdir /home/$user_name/{.config/zsh,}
-
-# SOFTWARE TIME:
-
-sed -i 's/#UseSyslog/UseSyslog/' /etc/pacman.conf 
-sed -i 's/#Color/Color\\\nILoveCandy/' /etc/pacman.conf 
-sed -i 's/Color\\/Color/' /etc/pacman.conf 
-sed -i 's/#CheckSpace/CheckSpace/' /etc/pacman.conf
-sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
-
-#update keyring
-pacman -S --noconfirm archlinux-keyring reflector 
-reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Syu
-
-# install drivers
-pacman --noconfirm -Syu bluez bluez-utils xf86-input-synaptics sof-firmware
-
-# install sway desktop
-pacman -S --noconfirm sway wayland foot
-
-# sound pipewire-alsa pipewire-pulse 
-pacman -S --noconfirm pipewire wireplumber 
-
-# utils and programming
-pacman -S --noconfirm python python-pip git wget hwdetect 
-
-# software
-# pacman -S firefox discord 
-
-# remove install files
-pacman -Scc
-
-# remove orphans
-pacman -Qtdq | pacman -Rns -
-
-# enable bluetooth
-echo AutoEnable=true >> /etc/bluetooth/main.conf
-systemctl enable bluetooth.service
-
-# sway 
-systemctl enable seatd.service 
-
-
 
 # # for thinkpad, max brightness brightness
 # echo 852 > /sys/class/backlight/intel_backlight/brightness
@@ -108,7 +71,5 @@ systemctl enable seatd.service
 # EOF
 # ) -i -- /etc/acpi/handler.sh
 
-# add to shell :
-# if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
-#   exec sway
-# fi
+# CPU stuff
+

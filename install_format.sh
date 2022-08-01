@@ -73,8 +73,8 @@ fi
 # update keyring and mirrors
 echo "..Updating Keyring and Mirrors"
 sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
-pacman -Syy --noconfirm archlinux-keyring reflector
-reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
+# pacman -Syy --noconfirm archlinux-keyring reflector
+# reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
 # get UTC time
 echo "..Getting Time"
 timedatectl set-ntp true
@@ -129,14 +129,14 @@ umount -R /mnt
 echo "..Mounting Subvolumes and Boot"
 mount_vars="noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol="
 mount -o "$mount_vars"root $drive_path /mnt
-mkdir -p /mnt/{efi,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
+mkdir -p /mnt/{root,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
 mount -o "$mount_vars"home $drive_path /mnt/home
 mount -o "$mount_vars"tmp $drive_path /mnt/var/tmp
 mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-mount "$install_drive"1 /mnt/efi
+mount "$install_drive"1 /mnt/root
 
 # disable CoW
 echo "..turning off CoW" 
@@ -170,11 +170,15 @@ fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
 echo "installing linux"
-pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh efibootmgr openssh efitools sbsigntools
+base_packages="base linux linux-firmware"
+build_packages="base-devel efitools sbsigntools efibootmgr bc"
+system_packages="btrfs-progs $microcode sof-firmware iwd zsh openssh"
+software_packages="neovim"
+pacstrap /mnt $base_packages $build_packages $system_packages $software_packages
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
-genfstab -U /mnt >> /mnt/etc/fstab
+# genfstab -U /mnt >> /mnt/etc/fstab
 
 # add time (timedatectl list-timezones)
 echo "setting time"
