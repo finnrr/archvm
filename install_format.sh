@@ -10,8 +10,8 @@ clear
 # or
 # pacman -S terminus-font
 # setfont ter-v32b
-pacman -S --noconfirm tamsyn-font
-setfont tamsyn10x20r
+pacman -Syy --noconfirm archlinux-keyring tamsyn-font
+setfont Tamsyn10x20r
 # check internet
 # ping 8.8.8.8 -c 1
 # ip -c a
@@ -27,7 +27,8 @@ set -a
 install_drive=/dev/sda
 drive_name=drive1
 drive_path=/dev/mapper/$drive_name
-swap_size=8196
+swap_size=4096
+# 8196
 user_name=wrk
 hostname=reactor7
 eth_name=enp0s3
@@ -170,11 +171,11 @@ fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
 echo "installing linux"
-base_packages="base linux linux-firmware"
+linux_packages="base linux linux-firmware"
 build_packages="base-devel efitools sbsigntools efibootmgr bc"
 system_packages="btrfs-progs $microcode sof-firmware iwd zsh openssh"
 software_packages="neovim"
-pacstrap /mnt $base_packages $build_packages $system_packages $software_packages
+pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
@@ -191,7 +192,7 @@ echo "root:$root_pass" | arch-chroot /mnt chpasswd
 export > /mnt/root/install_vars.txt
 echo "..running second script: location, bootloader and networking."
 # vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" # $vars
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_systemdboot.sh)" 
 
 # now user and drivers and some software
 # echo "..running third script: drivers, settings, users and software"

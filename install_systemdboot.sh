@@ -1,5 +1,18 @@
 #!/usr/bin/env -S zsh -s
 
+
+install_drive=/dev/sda
+drive_name=drive1
+drive_path=/dev/mapper/$drive_name
+swap_size=4096
+# 8196
+user_name=wrk
+hostname=reactor7
+eth_name=enp0s3
+wifi_name=Bell187
+my_location=America/Toronto
+
+
 # Time, Bootloader and Networking/SSH
 source  /root/install_vars.txt
 # vars
@@ -30,6 +43,11 @@ else
     echo "..Intel CPU chosen"
 fi
 
+# TTY font
+pacman -S --noconfirm tamsyn-font
+setfont Tamsyn10x20r
+echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
+
 # set hostname
 echo "..setting hostname"
 echo $hostname >> /etc/hostname
@@ -52,20 +70,6 @@ sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 mkinitcpio -P
 
-mkdir -p /efi/EFI/Arch
-
-echo "..writing EFI preset"
-cat > /etc/mkinitcpio.d/linux.preset << EOL
-ALL_config="/etc/mkinitcpio.conf"
-ALL_kver="/boot/vmlinuz-linux"
-ALL_microcode=(/boot/$microcode.img)
-
-PRESETS=('default')
-
-default_image="/boot/initramfs-linux.img"
-default_efi_image="/efi/EFI/Arch/linux.efi"
-EOL
-
 # find offset for swap and hibernation
 echo "..finding swap offset"
 cd /tmp
@@ -77,18 +81,29 @@ cd /
 # find encrypted drives UUID
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 
-# kernal hooks
-echo "..writing kernal hook to cmdline"
-cat > /etc/kernel/cmdline << EOL
-rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
+
+cat > /boot/loader/entries/arch.conf << EOL
+title Arch Linux
+linux /vmlinuz-linux
+initrd /amd-ucode.img
+initrd /initramfs-linux-zen.img
+options rd.luks.name=$cryptuuid=$drive_name root=/dev/mapper/$drive_name rootflags=subvol=root rd.luks.options=$cryptuuid=discard resume=$drive_path resume_offset=$swp_offset rw 
 EOL
+
+cat << EOF > /boot/loader/loader.conf
+default arch
+timeout 0
+editor  0
+EOF
+
+# kernal hooks
+# echo "..writing kernal hook to cmdline"
+# cat > /etc/kernel/cmdline << EOL
+# rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path rd.luks.options=$cryptuuid=discard resume=$drive_path resume_offset=$swp_offset rw 
+# EOL
 
 # refresh hooks
 mkinitcpio -P 
-
-# build EFI
-echo "..updating EFI"
-efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
 
 # NETWORKING:
 # install ssh
