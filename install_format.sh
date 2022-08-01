@@ -19,7 +19,7 @@ setfont tamsyn10x20r
 # first on machine set root password with 'passwd' then ssh in:
 # ssh -p 2266 root@localhost
 # run with following command, warning will wipe drive/data:
-# zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
+# zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_format.sh)"
 # drive partition numbers are hardcoded in script, this is for single drive.
 
 # predefine vars
@@ -136,7 +136,7 @@ mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-mount "$install_drive"1 /mnt/root
+mount "$install_drive"1 /mnt/boot
 
 # disable CoW
 echo "..turning off CoW" 
