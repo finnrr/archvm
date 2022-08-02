@@ -52,14 +52,6 @@ locale-gen
 echo "..setting system clock"
 hwclock --systohc
 
-# change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
-echo "..setting system hooks"
-all_hooks="base systemd keyboard autodetect modconf block sd-vconsole sd-encrypt filesystems fsck"
-sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
-sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
-
-mkinitcpio -P 
-
 bootctl --path=/boot install
 
 # find offset for swap and hibernation
@@ -73,29 +65,59 @@ cd /
 # find encrypted drives UUID
 cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 
+# change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
+echo "..setting system hooks"
+all_hooks="base systemd keyboard autodetect modconf block sd-vconsole sd-encrypt filesystems fsck"
+sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
+sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
 
-cat > /boot/loader/entries/arch.conf << EOL
-title Arch Linux
-linux /vmlinuz-linux
-initrd /amd-ucode.img
-initrd /initramfs-linux-zen.img
-options rd.luks.name=$cryptuuid=$drive_name root=/dev/mapper/$drive_name rootflags=subvol=root rd.luks.options=$cryptuuid=discard resume=$drive_path resume_offset=$swp_offset rw 
+
+
+echo "..writing EFI preset"
+cat > /etc/mkinitcpio.d/linux.preset << EOL
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux"
+ALL_microcode=(/boot/$microcode.img)
+
+PRESETS=('default')
+
+default_image="/boot/initramfs-linux.img"
+default_efi_image="/boot/EFI/systemd/systemd-bootx64.efi"
 EOL
 
-cat << EOF > /boot/loader/loader.conf
-default arch
-timeout 0
-editor  0
-EOF
-
 # kernal hooks
-# echo "..writing kernal hook to cmdline"
-# cat > /etc/kernel/cmdline << EOL
-# rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path rd.luks.options=$cryptuuid=discard resume=$drive_path resume_offset=$swp_offset rw 
-# EOL
+echo "..writing kernal hook to cmdline"
+cat > /etc/kernel/cmdline << EOL
+rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw 
+EOL
 
 # refresh hooks
 mkinitcpio -P 
+
+# cat > /boot/loader/entries/arch.conf << EOL
+# title Arch Linux
+# linux /vmlinuz-linux
+# initrd /amd-ucode.img
+# initrd /initramfs-linux.img
+# options rd.luks.name=$cryptuuid=$drive_name root=/dev/mapper/$drive_name rootflags=subvol=root rd.luks.options=$cryptuuid=discard resume=$drive_path resume_offset=$swp_offset rw 
+# EOL
+
+# cat << EOF > /boot/loader/loader.conf
+# default arch
+# timeout 0
+# editor  0
+# EOF
+
+
+# build EFI
+echo "..updating EFI"
+efibootmgr --create --disk "$install_drive"2 --label "Arch Linux" --loader '\EFI\systemd\systemd-bootx64.efi' --verbose
+
+
+
+
+
+
 
 # NETWORKING:
 # install ssh

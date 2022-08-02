@@ -179,7 +179,7 @@ pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
-# genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt >> /mnt/etc/fstab
 
 # add time (timedatectl list-timezones)
 echo "setting time"
@@ -193,7 +193,7 @@ export > /mnt/root/install_vars.txt
 echo "..running second script: location, bootloader and networking."
 # vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_systemdboot.sh)" 
-
+arch-chroot /mnt
 # now user and drivers and some software
 # echo "..running third script: drivers, settings, users and software"
 # vars="$_ $user_name $user_pass"
