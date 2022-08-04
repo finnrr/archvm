@@ -30,6 +30,11 @@ else
     echo "..Intel CPU chosen"
 fi
 
+# TTY font
+pacman -S --noconfirm tamsyn-font
+setfont Tamsyn10x20r
+echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
+
 # set hostname
 echo "..setting hostname"
 echo $hostname >> /etc/hostname
@@ -45,14 +50,15 @@ locale-gen
 echo "..setting system clock"
 hwclock --systohc
 
+# install systemd boot
+bootctl --path=/boot install
+
 # change /etc/mkinitcpio.conf HOOKS to include btrfs, resume is for hybernation.
 echo "..setting system hooks"
 all_hooks="base systemd keyboard autodetect modconf block sd-vconsole sd-encrypt filesystems fsck"
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
-sed -i "s/^BINARIES=().*/BINARIES=(btrfs)/" /etc/mkinitcpio.conf
-mkinitcpio -P
-
-mkdir -p /efi/EFI/Arch
+sed -i "s/^BINARIES=().*/MODULES=(btrfs)/" /etc/mkinitcpio.conf
+sed -i "s/^BINARIES=().*/BINARIES=(/usr/bin/btrfs)/" /etc/mkinitcpio.conf
 
 echo "..writing EFI preset"
 cat > /etc/mkinitcpio.d/linux.preset << EOL
@@ -80,7 +86,7 @@ cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
 # kernal hooks
 echo "..writing kernal hook to cmdline"
 cat > /etc/kernel/cmdline << EOL
-rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw bgrt_disable
+rd.luks.name=$cryptuuid=$drive_name rootflags=subvol=root root=$drive_path resume=$drive_path resume_offset=$swp_offset rw
 EOL
 
 # refresh hooks
@@ -131,5 +137,3 @@ cat > /etc/systemd/system/systemd-networkd-wait-online.service.d/override.conf <
 ExecStart=
 ExecStart=/usr/lib/systemd/systemd-networkd-wait-online --any -timeout=30
 EOL
-
-

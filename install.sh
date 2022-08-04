@@ -2,25 +2,20 @@
 # Arch initial setup with UEFI, LUKS, Swap, BTRFS with subvolumes and snapshot
 # todo: add systemd-boot(not possible without efifs driver?),TMP2 to hold LUKS key (do that in other script)
 
-# clear console
-clear
-
-# make font big
-# setfont latarcyrheb-sun32
-# or
-# pacman -S terminus-font
-# setfont ter-v32b
-pacman -S --noconfirm tamsyn-font
-setfont tamsyn10x20r
-# check internet
-# ping 8.8.8.8 -c 1
-# ip -c a
-
 # first on machine set root password with 'passwd' then ssh in:
 # ssh -p 2266 root@localhost
 # run with following command, warning will wipe drive/data:
 # zsh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install.sh)"
 # drive partition numbers are hardcoded in script, this is for single drive.
+
+# commands to check stuff
+# btrfs subvolume list -p -t /mnt
+# findmnt -nt btrfs
+# lsblk
+# fdisk -l 
+
+# clear console
+clear
 
 # predefine vars
 set -a
@@ -30,10 +25,11 @@ drive_path=/dev/mapper/$drive_name
 swap_size=8196
 user_name=wrk
 hostname=reactor7
-eth_name=enp0s3
+eth_name=enp0s31f6 
+# enp0s3
 wifi_name=Bell187
 my_location=America/Toronto
-# laptop eth is enp0s31f6
+# my_location="$(curl -s http://ip-api.com/line?fields=timezone)"
 
 # ask for vars if they dont exist
 if [ -z "$install_drive" ]; then
@@ -70,6 +66,17 @@ if [ -z "$wifi_pass" ]; then
     vared -p "%F{blue}wifi password?: %f" -c wifi_pass
 fi
 
+# make font big
+# setfont latarcyrheb-sun32
+# or
+# pacman -S terminus-font
+# setfont ter-v32b
+pacman -Syy --noconfirm tamsyn-font
+setfont Tamsyn10x20r
+# check internet
+# ping 8.8.8.8 -c 1
+# ip -c a
+
 # update keyring and mirrors
 echo "..Updating Keyring and Mirrors"
 sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
@@ -94,10 +101,10 @@ sgdisk -n 0:0:+256MiB -a 4096 -t 0:ef00 -c 0:efi $install_drive
 
 # make sure rest of drive is in 4096 sized blocks for encryption
 end_position=$(sgdisk -E $install_drive)
-sgdisk -a 4096 -n2:0:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8300 $install_drive 
+sgdisk -a 4096 -n 2:257M:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8309 $install_drive 
 
 # set up encrypted drive 
-echo -n ${drive_pass} | cryptsetup luksFormat -q --iter-time 500 --key-size 256 --sector-size 4096 --type luks2 "$install_drive"2 -d -
+echo -n ${drive_pass} | cryptsetup luksFormat -q --iter-time 500 --key-size 256 --sector-size 4096 --align-payload 2048 --type luks2 "$install_drive"2 -d -
 
 # open encrypted drive
 echo "..Open LUKS partition"
@@ -129,15 +136,16 @@ umount -R /mnt
 echo "..Mounting Subvolumes and Boot"
 mount_vars="noatime,nodiratime,compress=zstd,space_cache=v2,ssd,subvol="
 mount -o "$mount_vars"root $drive_path /mnt
-mkdir -p /mnt/{efi,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
+mkdir -p /mnt/{boot,home,swap,/var/tmp,/var/log,/var/cache/pacman/pkg,.snapshots}
 mount -o "$mount_vars"home $drive_path /mnt/home
 mount -o "$mount_vars"tmp $drive_path /mnt/var/tmp
 mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-mount "$install_drive"1 /mnt/efi
-#
+mount "$install_drive"1 /mnt/boot
+
+# disable CoW
 echo "..turning off CoW" 
 chattr +C /mnt/var/cache/pacman/pkg/
 chattr +C /mnt/var/log
@@ -151,12 +159,6 @@ chmod 0600 /mnt/swap/swapfile
 mkswap -U clear /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 
-# commands to check stuff
-# btrfs subvolume list -p -t /mnt
-# findmnt -nt btrfs
-# lsblk
-# fdisk -l 
-
 # get CPU manufacturer
 CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
@@ -169,7 +171,11 @@ fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
 echo "installing linux"
-pacstrap /mnt base btrfs-progs linux linux-firmware base-devel $microcode neovim iwd bc zsh efibootmgr openssh efitools sbsigntools
+linux_packages="base linux linux-firmware"
+build_packages="base-devel efitools sbsigntools efibootmgr bc"
+system_packages="btrfs-progs $microcode sof-firmware libva-intel-driver intel-media-driver vulkan-intel"
+software_packages="neovim zsh zsh-completions openssh iwd"
+pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)
 echo "making fstab"
@@ -182,19 +188,19 @@ arch-chroot  /mnt ln -sf /usr/share/zoneinfo/$my_location /etc/localtime
 #set root password
 echo "root:$root_pass" | arch-chroot /mnt chpasswd 
 
-# now part 2 for system setup
+# now part 2 for system setup 
 export > /mnt/root/install_vars.txt
 echo "..running second script: location, bootloader and networking."
 # vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" # $vars
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" # $vars
 
 # now user and drivers and some software
 # echo "..running third script: drivers, settings, users and software"
 # vars="$_ $user_name $user_pass"
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # shred password file
-# shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
+shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
 
 # umount -R -l /mnt
 # reboot
