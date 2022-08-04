@@ -137,8 +137,7 @@ mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
 mount "$install_drive"1 /mnt/efi
-
-# disable CoW
+#
 echo "..turning off CoW" 
 chattr +C /mnt/var/cache/pacman/pkg/
 chattr +C /mnt/var/log
