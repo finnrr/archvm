@@ -1,6 +1,6 @@
 #!/usr/bin/env -S zsh -s
 
-# Time, Bootloader and Networking/SSH
+# Time, Bootloader and Networking/SSH, change partitions for Sata/NVME
 source  /root/install_vars.txt
 # vars
 # install_drive=$1
@@ -69,7 +69,7 @@ ALL_microcode=(/boot/$microcode.img)
 PRESETS=('default')
 
 default_image="/boot/initramfs-linux.img"
-default_efi_image="/efi/EFI/Arch/linux.efi"
+default_efi_image="/boot/EFI/systemd/systemd-bootx64.efi"
 EOL
 
 # find offset for swap and hibernation
@@ -81,7 +81,7 @@ swp_offset=$(echo "$(./bmp /swap/swapfile | egrep "^0\s+" | cut -f9) / $(getconf
 cd /
 
 # find encrypted drives UUID
-cryptuuid=$(cryptsetup luksUUID "$install_drive"2)
+cryptuuid=$(cryptsetup luksUUID "$install_drive"p2)
 
 # kernal hooks
 echo "..writing kernal hook to cmdline"
@@ -94,7 +94,7 @@ mkinitcpio -P
 
 # build EFI
 echo "..updating EFI"
-efibootmgr --create --disk "$install_drive"2 --label "ArchLinux" --loader '\EFI\Arch\linux.efi' --verbose
+efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --loader '\EFI\systemd\systemd-bootx64.efi' --verbose
 
 # NETWORKING:
 # install ssh
