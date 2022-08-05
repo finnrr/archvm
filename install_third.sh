@@ -45,7 +45,7 @@ EOL
 echo 852 > /sys/class/backlight/intel_backlight/brightness
 
 # # for thinkpad, get brightness function keys working
-sed -i '/^case "$1" in/r'<(cat <<EOF
+sed -i '/^case "\$1" in/r'<(cat <<EOF
     video/brightnessup)
             case "\$2" in
                     BRTUP)
