@@ -173,7 +173,7 @@ fi
 echo "installing linux"
 linux_packages="base linux linux-firmware"
 build_packages="base-devel efitools sbsigntools efibootmgr bc"
-system_packages="btrfs-progs $microcode sof-firmware libva-intel-driver intel-media-driver vulkan-intel"
+system_packages="btrfs-progs $microcode sof-firmware libva-intel-driver intel-media-driver vulkan-intel acpid"
 software_packages="neovim zsh zsh-completions openssh iwd"
 pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 
@@ -197,7 +197,7 @@ arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/ar
 # now user and drivers and some software
 # echo "..running third script: drivers, settings, users and software"
 # vars="$_ $user_name $user_pass"
-arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
+# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # shred password file
 shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
