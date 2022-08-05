@@ -19,7 +19,7 @@ clear
 
 # predefine vars
 set -a
-install_drive=/dev/sda
+install_drive=/dev/nvme0n1
 drive_name=drive1
 drive_path=/dev/mapper/$drive_name
 swap_size=8196
@@ -104,11 +104,11 @@ end_position=$(sgdisk -E $install_drive)
 sgdisk -a 4096 -n 2:257M:$(( $end_position - ($end_position + 1) % 4096 )) -t 0:8309 $install_drive 
 
 # set up encrypted drive 
-echo -n ${drive_pass} | cryptsetup luksFormat -q --iter-time 500 --key-size 256 --sector-size 4096 --align-payload 2048 --type luks2 "$install_drive"2 -d -
+echo -n ${drive_pass} | cryptsetup luksFormat -q --iter-time 500 --key-size 256 --sector-size 4096 --align-payload 2048 --type luks2 "$install_drive"p2 -d -
 
 # open encrypted drive
 echo "..Open LUKS partition"
-echo -n ${drive_pass} |cryptsetup open "$install_drive"2 $drive_name
+echo -n ${drive_pass} |cryptsetup open "$install_drive"p2 $drive_name
 drive_path=/dev/mapper/$drive_name
 
 # remove password from env (better to set manually)
@@ -116,7 +116,7 @@ unset drive_pass
 
 # format file system
 echo "..Formating File System"
-mkfs.vfat -F32 -n EFI "$install_drive"1
+mkfs.vfat -F32 -n EFI "$install_drive"p1
 mkfs.btrfs --force -L ROOT $drive_path -f
 
 # mount and make subvolumes to /mnt
@@ -143,7 +143,7 @@ mount -o "$mount_vars"log $drive_path /mnt/var/log
 mount -o "$mount_vars"pkg $drive_path /mnt/var/cache/pacman/pkg/
 mount -o "$mount_vars"snaps $drive_path /mnt/.snapshots
 mount -o "$mount_vars"swap $drive_path /mnt/swap
-mount "$install_drive"1 /mnt/boot
+mount "$install_drive"p1 /mnt/boot
 
 # disable CoW
 echo "..turning off CoW" 
