@@ -76,15 +76,23 @@ setfont Tamsyn10x20r
 # check internet
 # ping 8.8.8.8 -c 1
 # ip -c a
+# get UTC time
+echo "..Getting Time"
+timedatectl set-timezone $my_location
+timedatectl set-ntp true
 
 # update keyring and mirrors
 echo "..Updating Keyring and Mirrors"
+# below is if keys are give trouble
+# setopt rmstarsilent
+# killall gpg-agent
+# rm /etc/pacman.d/gnupg/* -f
+# pacman-key --init
+# pacman-key --populate
 sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
 pacman -Syy --noconfirm archlinux-keyring reflector
 reflector --age 12 --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist
-# get UTC time
-echo "..Getting Time"
-timedatectl set-ntp true
+
 
 # partition 512MB boot / rest, you'll need more for multiboot or encryption
 echo "..Wiping Data From $install_drive"
@@ -173,8 +181,8 @@ fi
 echo "installing linux"
 linux_packages="base linux linux-firmware"
 build_packages="base-devel efitools sbsigntools efibootmgr bc"
-system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid"
-software_packages="neovim zsh zsh-completions openssh iwd"
+system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid nvme-cli cryptsetup dosfstools"
+software_packages="neovim zsh zsh-completions openssh iwd tamsyn-font"
 pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 
 # generate fstab (confirm /etc/fstab swap looks like: /swap/swapfile none swap defaults 0 0)

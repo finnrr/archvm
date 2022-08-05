@@ -30,11 +30,6 @@ else
     echo "..Intel CPU chosen"
 fi
 
-# TTY font
-pacman -S --noconfirm tamsyn-font
-setfont Tamsyn10x20r
-echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
-
 # set hostname
 echo "..setting hostname"
 echo $hostname >> /etc/hostname

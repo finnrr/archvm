@@ -18,7 +18,6 @@ rmmod pcspkr
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
 # TTY font
-pacman -S --noconfirm tamsyn-font
 setfont Tamsyn10x20r
 echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
 
