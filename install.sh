@@ -191,13 +191,11 @@ echo "root:$root_pass" | arch-chroot /mnt chpasswd
 # now part 2 for system setup 
 export > /mnt/root/install_vars.txt
 echo "..running second script: location, bootloader and networking."
-# vars="$_ $install_drive $drive_name $drive_path $hostname $eth_name $wifi_name $wifi_pass"
-arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" # $vars
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_second.sh)" 
 
 # now user and drivers and some software
-# echo "..running third script: drivers, settings, users and software"
-# vars="$_ $user_name $user_pass"
-# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
+echo "..running third script: drivers, settings, users and software"
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
 # shred password file
 shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt

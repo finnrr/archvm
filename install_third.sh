@@ -6,6 +6,7 @@
 sysctl vm.swappiness=10
 
 # disable clearing of boot messages:
+mkdir /etc/systemd/system/getty@tty1.service.d
 cat > /etc/systemd/system/getty@tty1.service.d/noclear.conf <<EOL
 [Service]
 TTYVTDisallocate=no
@@ -18,7 +19,7 @@ echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
 # TTY font
 pacman -S --noconfirm tamsyn-font
-setfont tamsyn10x20r
+setfont Tamsyn10x20r
 echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
 
 # set vars in profile
@@ -44,32 +45,33 @@ EOL
 # echo 852 > /sys/class/backlight/intel_backlight/brightness
 
 # # for thinkpad, get brightness function keys working
-# sed '/^CHANGETHIS$/r'<(cat <<EOF
-# video/brightnessup)
-#             case "$2" in
-#                     BRTUP)
-#                         logger 'BrightnessUp button pressed'
-#                         echo $((`cat /sys/class/backlight/intel_backlight/brightness` + 106)) > /sys/class/backlight/intel_backlight/brightness
-#                         ;;
-#                     *)
-#                         logger "ACPI action undefined: $2"
-#                         ;;
-#             esac
-#             ;;
+sed '/button/power)$/r'<(cat <<EOF
+    video/brightnessup)
+            case "$2" in
+                    BRTUP)
+                        logger 'BrightnessUp button pressed'
+                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` + 106)) > /sys/class/backlight/intel_backlight/brightness
+                        ;;
+                    *)
+                        logger "ACPI action undefined: $2"
+                        ;;
+            esac
+            ;;
 
-#     video/brightnessdown)
-#             case "$2" in
-#                     BRTDN)
-#                         logger 'BrightnessDown button pressed'
-#                         echo $((`cat /sys/class/backlight/intel_backlight/brightness` - 106)) > /sys/class/backlight/intel_backlight/brightness
-#                         ;;
-#                     *)
-#                         logger "ACPI action undefined: $2"
-#                         ;;
-#             esac
-#             ;;
-# EOF
-# ) -i -- /etc/acpi/handler.sh
+    video/brightnessdown)
+            case "$2" in
+                    BRTDN)
+                        logger 'BrightnessDown button pressed'
+                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` - 106)) > /sys/class/backlight/intel_backlight/brightness
+                        ;;
+                    *)
+                        logger "ACPI action undefined: $2"
+                        ;;
+            esac
+            ;;
+    button/power)
+EOF
+) -i -- /etc/acpi/handler.sh
 
 # CPU stuff
 
