@@ -15,9 +15,6 @@ echo "$user_name:$user_pass" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 
-
-
-
 # make some dirs
 mkdir -p /home/$user_name/.config/{zsh,sway}
 
