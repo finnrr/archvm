@@ -57,7 +57,7 @@ bootctl --path=/boot install
 echo "..setting system hooks"
 all_hooks="base systemd keyboard autodetect modconf block sd-vconsole sd-encrypt filesystems fsck"
 sed -i "s/^HOOKS=.*/HOOKS=(${all_hooks})/" /etc/mkinitcpio.conf
-sed -i "s/^BINARIES=().*/MODULES=(btrfs)/" /etc/mkinitcpio.conf
+sed -i "s/^MODULES=().*/MODULES=(btrfs)/" /etc/mkinitcpio.conf
 sed -i "s/^BINARIES=().*/BINARIES=(/usr/bin/btrfs)/" /etc/mkinitcpio.conf
 
 echo "..writing EFI preset"

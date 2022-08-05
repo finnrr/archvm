@@ -42,36 +42,37 @@ XDG_CURRENT_DESKTOP=sway
 EOL
 
 # # for thinkpad, max brightness brightness
-# echo 852 > /sys/class/backlight/intel_backlight/brightness
+echo 852 > /sys/class/backlight/intel_backlight/brightness
 
 # # for thinkpad, get brightness function keys working
-sed '/button/power)$/r'<(cat <<EOF
+sed -i '/^case "$1" in/r'<(cat <<EOF
     video/brightnessup)
-            case "$2" in
+            case "\$2" in
                     BRTUP)
                         logger 'BrightnessUp button pressed'
-                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` + 106)) > /sys/class/backlight/intel_backlight/brightness
+                        echo \$((\`cat /sys/class/backlight/intel_backlight/brightness\` + 106)) > /sys/class/backlight/intel_backlight/brightness
                         ;;
                     *)
-                        logger "ACPI action undefined: $2"
+                        logger "ACPI action undefined: \$2"
                         ;;
             esac
             ;;
 
     video/brightnessdown)
-            case "$2" in
+            case "\$2" in
                     BRTDN)
                         logger 'BrightnessDown button pressed'
-                        echo $((`cat /sys/class/backlight/intel_backlight/brightness` - 106)) > /sys/class/backlight/intel_backlight/brightness
+                        echo \$((\`cat /sys/class/backlight/intel_backlight/brightness\` - 106)) > /sys/class/backlight/intel_backlight/brightness
                         ;;
                     *)
-                        logger "ACPI action undefined: $2"
+                        logger "ACPI action undefined: \$2"
                         ;;
             esac
             ;;
-    button/power)
 EOF
-) -i -- /etc/acpi/handler.sh
+) /etc/acpi/handler.sh
+
+ "s/^BINARIES=().*/MODULES=(btrfs)/"
 
 # CPU stuff
 
