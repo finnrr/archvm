@@ -171,14 +171,14 @@ swapon /mnt/swap/swapfile
 CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ "$CPU" == *"AuthenticAMD"* ]]; then
     microcode="amd-ucode"
-    echo "AMD CPU chosen"
+    echo "..AMD CPU chosen"
 else
     microcode="intel-ucode"
-    echo "Intel CPU chosen"
+    echo "..Intel CPU chosen"
 fi
 
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
-echo "installing linux"
+echo "..installing linux"
 linux_packages="base linux linux-firmware"
 build_packages="base-devel efitools sbsigntools efibootmgr bc"
 system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid nvme-cli cryptsetup dosfstools"
@@ -205,6 +205,7 @@ arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/ar
 echo "..running third script: drivers, settings, users and software"
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
+arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_forth.sh)"
 # shred password file
 shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
 

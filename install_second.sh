@@ -45,6 +45,10 @@ locale-gen
 echo "..setting system clock"
 hwclock --systohc
 
+# TTY font
+setfont Tamsyn10x20r
+echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
+
 # install systemd boot
 bootctl --path=/boot install
 

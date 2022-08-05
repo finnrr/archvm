@@ -17,10 +17,6 @@ echo "disable internal speaker"
 rmmod pcspkr
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
-# TTY font
-setfont Tamsyn10x20r
-echo "FONT=Tamsyn10x20r" > /etc/vconsole.conf
-
 # set vars in profile
 echo "..Setting Default Directories"
 echo 'ZDOTDIR=$HOME/.config/zsh' >> /etc/zsh/zshenv

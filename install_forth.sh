@@ -1,4 +1,5 @@
 source  /root/install_vars.txt
+user_name=wrk
 
 # user_name=$1
 echo "..user name is $user_name"
@@ -14,12 +15,7 @@ echo "$user_name:$user_pass" | chpasswd
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 
-git clone https://aur.archlinux.org/paru.git /home/$user_name/paru
-chown $user_name /home/$user_name/paru
-cd /home/$user_name/paru
-su -c "makepkg -si --noconfirm" -s /bin/sh $user_name
-cd /home/$user_name
-rm -r /home/$user_name/paru
+
 
 
 # make some dirs
@@ -36,6 +32,14 @@ pacman -Syu
 # install drivers
 pacman -S --noconfirm bluez bluez-utils xf86-input-synaptics
 
+# AUR manager
+git clone https://aur.archlinux.org/paru.git /home/$user_name/paru
+chown $user_name /home/$user_name/paru
+cd /home/$user_name/paru
+su -c "makepkg -si --noconfirm" -s /bin/sh $user_name
+cd /home/$user_name
+rm -r /home/$user_name/paru
+
 # install sway desktop
 pacman -S --noconfirm sway wayland foot
 
@@ -43,7 +47,10 @@ pacman -S --noconfirm sway wayland foot
 pacman -S --noconfirm pipewire wireplumber 
 
 # utils and programming
-pacman -S --noconfirm python python-pip git wget hwdetect 
+pacman -S --noconfirm python python-pip wget hwdetect 
+
+# manuals
+pacman -S --noconfirm man-db man-pages texinfo
 
 # software
 # pacman -S firefox discord 
@@ -62,7 +69,7 @@ systemctl enable bluetooth.service
 gpasswd -a $user_name seat
 systemctl enable seatd.service 
 cat > /home/$user_name/.config/zsh/.zshrc <<EOL
-if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
+if [ -z \$DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
   exec sway
 fi
 EOL
