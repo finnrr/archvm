@@ -1,6 +1,5 @@
 source  /root/install_vars.txt
 
-
 # user_name=$1
 echo "..user name is $user_name"
 # user_pass=$2
