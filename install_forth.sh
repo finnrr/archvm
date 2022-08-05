@@ -34,7 +34,7 @@ reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syu
 
 # install drivers
-pacman -S --noconfirm bluez bluez-utils xf86-input-synaptics sof-firmware
+pacman -S --noconfirm bluez bluez-utils xf86-input-synaptics
 
 # install sway desktop
 pacman -S --noconfirm sway wayland foot

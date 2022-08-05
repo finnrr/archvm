@@ -173,7 +173,7 @@ fi
 echo "installing linux"
 linux_packages="base linux linux-firmware"
 build_packages="base-devel efitools sbsigntools efibootmgr bc"
-system_packages="btrfs-progs $microcode sof-firmware libva-intel-driver intel-media-driver vulkan-intel acpid"
+system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid"
 software_packages="neovim zsh zsh-completions openssh iwd"
 pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 
