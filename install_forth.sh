@@ -1,4 +1,4 @@
-source  /root/install_vars.txt
+# source  /root/install_vars.txt
 user_name=wrk
 
 # user_name=$1
