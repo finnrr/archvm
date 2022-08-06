@@ -68,7 +68,7 @@ ALL_microcode=(/boot/$microcode.img)
 PRESETS=('default')
 
 default_image="/boot/initramfs-linux.img"
-default_efi_image="/boot/EFI/systemd/systemd-bootx64.efi"
+default_efi_image="/boot/EFI/arch.efi"
 EOL
 
 # find offset for swap and hibernation
@@ -78,6 +78,10 @@ curl -s "https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts/
 gcc -O2 -o bmp bmp.c
 swp_offset=$(echo "$(./bmp /swap/swapfile | egrep "^0\s+" | cut -f9) / $(getconf PAGESIZE)" | bc)
 cd /
+
+# hybernation (needed)?
+# echo $swp_offset > /sys/power/resume_offset
+
 
 # find encrypted drives UUID
 cryptuuid=$(cryptsetup luksUUID "$install_drive"p2)
@@ -93,8 +97,9 @@ mkinitcpio -P
 
 # build EFI
 echo "..updating EFI"
-efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --loader '\EFI\systemd\systemd-bootx64.efi' --verbose
+efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --part 1 --loader '\EFI\BOOT\BOOTX64.efi' --verbose
 
+efibootmgr --create --disk /dev/nvme0n1p2 --label "ArchLinux" --part 1 --loader '\EFI\arch.efi' --verbose -a
 # NETWORKING:
 # install ssh
 echo "..setting ssh"
@@ -105,7 +110,7 @@ ssh-keygen -A
 # start ssh service
 systemctl enable --now sshd
 
-# point to keys
+# point to keys (disable root login after setup)
 cat > /etc/ssh/sshd_config <<EOL
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_ecdsa_key

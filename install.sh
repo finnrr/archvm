@@ -180,8 +180,8 @@ fi
 # install linux, neovim for editor, iwd for wifi, zsh for shell, bc to calculate swap offset
 echo "..installing linux"
 linux_packages="base linux linux-firmware"
-build_packages="base-devel efitools sbsigntools efibootmgr bc"
-system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid nvme-cli cryptsetup dosfstools"
+build_packages="base-devel efitools sbsigntools efibootmgr bc wget git"
+system_packages="btrfs-progs $microcode sof-firmware intel-media-driver mesa vulkan-intel acpid nvme-cli dosfstools"
 software_packages="neovim zsh zsh-completions openssh iwd tamsyn-font"
 pacstrap /mnt $(echo $linux_packages $build_packages $system_packages $software_packages)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S zsh -s
 
-# SYSTEM TUNING
+# SYSTEM TUNING, would not recommend copy pasting this stuff. 
 
 # lower swapiness
 sysctl vm.swappiness=10
@@ -13,13 +13,14 @@ TTYVTDisallocate=no
 EOL
 
 # remove beeper
-echo "disable internal speaker"
+echo "..disable internal speaker"
 rmmod pcspkr
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
 # set vars in profile
 echo "..Setting Default Directories"
 echo 'ZDOTDIR=$HOME/.config/zsh' >> /etc/zsh/zshenv
+echo 'ZSH=$HOME/.config/zsh/oh-my-zsh' >> /etc/zsh/zshenv
 echo 'export XDG_CONFIG_HOME="$HOME/.config"' >> /etc/profile
 echo 'export XDG_CACHE_HOME="$HOME/.cache"' >> /etc/profile
 echo 'export XDG_DATA_HOME="$HOME/.local/share"' >> /etc/profile
@@ -33,8 +34,13 @@ CLUTTER_BACKEND=wayland
 MOZ_ENABLE_WAYLAND=1
 EDITOR=nvim
 VISUAL=nvim
+PAGER=less
 XDG_CURRENT_DESKTOP=sway
 EOL
+
+# pacman
+echo "..customizing pacman"
+sed -i "s/^#ParallelDownloads = 5$/ParallelDownloads = 6/" /etc/pacman.conf
 
 # # for thinkpad, max brightness brightness
 echo 852 > /sys/class/backlight/intel_backlight/brightness
