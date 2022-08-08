@@ -24,8 +24,15 @@ echo 'export XDG_CONFIG_HOME="$HOME/.config"' >> /etc/profile
 echo 'export XDG_CACHE_HOME="$HOME/.cache"' >> /etc/profile
 echo 'export XDG_DATA_HOME="$HOME/.local/share"' >> /etc/profile
 echo 'export XDG_STATE_HOME="$HOME/.local/state"' >> /etc/profile
+echo 'export RUSTUP_HOME="$XDG_DATA_HOME/rustup"' >> /etc/profile
+echo 'export GNUPGHOME="$XDG_DATA_HOME/gnupg"' >> /etc/profile
+echo 'export GOPATH="$XDG_DATA_HOME/GO"' >> /etc/profile
 echo 'alias vim="nvim"' >> /etc/profile
 echo 'alias vi="nvim"' >> /etc/profile
+echo 'alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"' >> /etc/profile
+
+
+
 
 # set global vars in /etc/environment
 echo "..Setting Global Vars"

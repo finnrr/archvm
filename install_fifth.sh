@@ -20,53 +20,84 @@ echo "promptinit" >> /home/$user_name/.config/zsh/.zshrc
 echo "prompt damoekri" >> /home/$user_name/.config/zsh/.zshrc
 
 
-if [[ -z "$BROWSER" && "$OSTYPE" == darwin* ]]; then
-  export BROWSER='open'
-fi
+# fonts
+cat> /home/$user_name/.config/fontconfig/fonts.conf <<EOF
+<?xml version='1.0'?>
+<!DOCTYPE fontconfig SYSTEM 'fonts.dtd'>
+<fontconfig>
+
+ <alias>
+  <family>sans-serif</family>
+  <prefer>
+   <family>Noto Sans Cond</family>
+  </prefer>
+ </alias>
+
+ <alias>
+  <family>serif</family>
+  <prefer>
+   <family>Noto Serif</family>
+  </prefer>
+ </alias>
+
+ <alias>
+  <family>monospace</family>
+  <prefer>
+   <family>Noto Sans Mono</family>
+  </prefer>
+ </alias>
+
+</fontconfig>
+EOF
 
 
-# Language
-#
+# if [[ -z "$BROWSER" && "$OSTYPE" == darwin* ]]; then
+#   export BROWSER='open'
+# fi
 
-if [[ -z "$LANG" ]]; then
-  export LANG='en_US.UTF-8'
-fi
 
-#
-# Paths
-#
+# # Language
+# #
 
-# Ensure path arrays do not contain duplicates.
-typeset -gU cdpath fpath mailpath path
+# if [[ -z "$LANG" ]]; then
+#   export LANG='en_US.UTF-8'
+# fi
 
-# Set the list of directories that cd searches.
-# cdpath=(
-#   $cdpath
+# #
+# # Paths
+# #
+
+# # Ensure path arrays do not contain duplicates.
+# typeset -gU cdpath fpath mailpath path
+
+# # Set the list of directories that cd searches.
+# # cdpath=(
+# #   $cdpath
+# # )
+
+# # Set the list of directories that Zsh searches for programs.
+# path=(
+#   $HOME/{,s}bin(N)
+#   /opt/{homebrew,local}/{,s}bin(N)
+#   /usr/local/{,s}bin(N)
+#   $path
 # )
 
-# Set the list of directories that Zsh searches for programs.
-path=(
-  $HOME/{,s}bin(N)
-  /opt/{homebrew,local}/{,s}bin(N)
-  /usr/local/{,s}bin(N)
-  $path
-)
+# #
+# # Less
+# #
 
-#
-# Less
-#
+# # Set the default Less options.
+# # Mouse-wheel scrolling has been disabled by -X (disable screen clearing).   
+# # Remove -X to enable it.
+# if [[ -z "$LESS" ]]; then
+#   export LESS='-g -i -M -R -S -w -X -z-4'
+# fi
 
-# Set the default Less options.
-# Mouse-wheel scrolling has been disabled by -X (disable screen clearing).   
-# Remove -X to enable it.
-if [[ -z "$LESS" ]]; then
-  export LESS='-g -i -M -R -S -w -X -z-4'
-fi
-
-# Set the Less input preprocessor.
-# Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.   
-if [[ -z "$LESSOPEN" ]] && (( $#commands[(i)lesspipe(|.sh)] )); then
-  export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"      
-fi
+# # Set the Less input preprocessor.
+# # Try both `lesspipe` and `lesspipe.sh` as either might exist on a system.   
+# if [[ -z "$LESSOPEN" ]] && (( $#commands[(i)lesspipe(|.sh)] )); then
+#   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"      
+# fi
 
 

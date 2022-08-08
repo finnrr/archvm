@@ -35,7 +35,7 @@ echo "prompt damoekri" >> /root/.config/zsh/.zshrc
 
 # default dirs
 rm /etc/skel/.* -f
-mkdir -p /etc/skel/.config/{zsh,sway,nvim,paru}
+mkdir -p /etc/skel/.config/{zsh,sway,nvim,paru,foot,fontconfig}
 touch /etc/skel/.config/zsh/.zshrc
 
 # add users and set root password
@@ -70,7 +70,7 @@ rm -r /home/$user_name/paru
 sed -i "s/^#BottomUp$/BottomUp/" /etc/paru.conf
 
 # install sway desktop
-pacman -S --noconfirm sway wayland xorg-xwayland foot
+pacman -S --noconfirm sway wayland xorg-xwayland foot 
 
 # sound pipewire-alsa pipewire-pulse 
 pacman -S --noconfirm pipewire wireplumber 
