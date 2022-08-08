@@ -12,27 +12,36 @@ echo "..user password is set"
 # change root shell
 echo "..changing root shell"
 sed -i "s|root:/bin/bash|root:/bin/zsh|g" /etc/passwd
-mkdir -p /root/.config/{zsh,nvim}
 touch /root/.config/zsh/.zshrc
+zsh
+mkdir -p /root/.config/{zsh,nvim}
+chmod 700 /root/.config -R
+
 
 # zpresto for root
 echo "..giving root zpresto"
-git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
+git clone --recursive https://github.com/sorin-ionescu/prezto.git $ZDOTDIR/.zprezto
+chmod 700 $ZDOTDIR/.zprezto -R
 echo 'source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"' >> /root/.config/zsh/.zshrc
-/root/.config/zsh/.zprezto/init.zsh
+setopt EXTENDED_GLOB
+for rcfile in "${ZDOTDIR:-$HOME}"/.zprezto/runcoms/^README.md(.N); do
+  ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${rcfile:t}"
+done
 sed -i "s|'sorin'|'skwp'|g" /root/.config/zsh/.zpreztorc
+sed -i "s|'emacs'|'vi'|g" /root/.config/zsh/.zpreztorc
+echo "autoload -Uz promptinit" >> /root/.config/zsh/.zshrc
+echo "promptinit" >> /root/.config/zsh/.zshrc
+echo "prompt damoekri" >> /root/.config/zsh/.zshrc
 
 # default dirs
 rm /etc/skel/.* -f
 mkdir -p /etc/skel/.config/{zsh,sway,nvim,paru}
-wget -P /etc/skel/.config/paru/ https://raw.githubusercontent.com/Morganamilo/paru/master/paru.conf
 touch /etc/skel/.config/zsh/.zshrc
 
 # add users and set root password
 echo "..add user $user_name"
 useradd -m -G wheel -s /bin/zsh $user_name
 echo "$user_name:$user_pass" | chpasswd 
-
 # give sudoers permission and bypass passwords (not recommended)
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
@@ -40,24 +49,25 @@ echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 #update keyring
 echo "..updating mirrors"
-pacman -S --noconfirm archlinux-keyring reflector 
+pacman -Syu --noconfirm archlinux-keyring reflector 
 reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Syu
 
 # manage thread privileges
-pacman -S realtime-privileges
+pacman -S --noconfirm realtime-privileges
 usermod -aG realtime $user_name
 
 # install drivers
 pacman -S --noconfirm bluez bluez-utils # xf86-input-synaptics
 
 # AUR manager
+pacman -S --noconfirm rustup
 git clone https://aur.archlinux.org/paru.git /home/$user_name/paru
 chown $user_name /home/$user_name/paru
 cd /home/$user_name/paru
-su -c "makepkg -si --noconfirm" -s /bin/sh $user_name
+su -c "rustup default stable;makepkg -si --noconfirm" -s /bin/sh $user_name
 cd /home/$user_name
 rm -r /home/$user_name/paru
+sed -i "s/^#BottomUp$/BottomUp/" /etc/paru.conf
 
 # install sway desktop
 pacman -S --noconfirm sway wayland xorg-xwayland foot
@@ -78,7 +88,7 @@ pacman -S --noconfirm man-db man-pages texinfo
 pacman -Scc --noconfirm
 
 # remove orphans
-pacman -Qtdq --noconfirm | pacman -Rns --noconfirm -
+pacman -Qtdq |pacman -Rns 
 
 # enable bluetooth
 echo AutoEnable=true >> /etc/bluetooth/main.conf
@@ -87,13 +97,18 @@ systemctl enable bluetooth.service
 # sway 
 gpasswd -a $user_name seat
 systemctl enable seatd.service 
-cat > /home/$user_name/.config/zsh/.zshrc <<EOL
+cat >> /home/$user_name/.config/zsh/.zprofile <<EOL
 if [ -z \$DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
   exec sway
 fi
 EOL
 
-
+# auto login
+cat > /etc/systemd/system/getty@tty1.service.d/autologin.conf << EOL
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin $user_name - \$TERM
+EOL
 # sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 

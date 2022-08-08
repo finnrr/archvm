@@ -1,8 +1,10 @@
 #!/usr/bin/env -S zsh -s
 
 # Time, Bootloader and Networking/SSH, change partitions for Sata/NVME
-source  /root/install_vars.txt
+
 # vars
+source  /root/install_vars.txt
+
 # install_drive=$1
 echo "install_drive is $install_drive"
 # drive_name=$2
@@ -97,7 +99,9 @@ mkinitcpio -P
 
 # build EFI
 echo "..updating EFI"
-efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --part 1 --loader '\EFI\arch.efi' --verbose -a
+efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --part 1 --loader '\EFI\arch.efi' --verbose 
+
+
 # NETWORKING:
 # install ssh
 echo "..setting ssh"
