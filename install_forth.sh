@@ -75,10 +75,10 @@ pacman -S --noconfirm man-db man-pages texinfo
 # pacman -S firefox discord 
 
 # remove install files
-pacman -Scc
+pacman -Scc --noconfirm
 
 # remove orphans
-pacman -Qtdq | pacman -Rns -
+pacman -Qtdq --noconfirm | pacman -Rns --noconfirm -
 
 # enable bluetooth
 echo AutoEnable=true >> /etc/bluetooth/main.conf

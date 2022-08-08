@@ -38,7 +38,7 @@ echo $hostname >> /etc/hostname
 echo "..setting location"
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 echo LANG=en_US.UTF-8 >> /etc/locale.conf
-localectl set-locale LANG=en_US.UTF-8
+# localectl set-locale LANG=en_US.UTF-8
 locale-gen
 
 # sync clock
@@ -97,9 +97,7 @@ mkinitcpio -P
 
 # build EFI
 echo "..updating EFI"
-efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --part 1 --loader '\EFI\BOOT\BOOTX64.efi' --verbose
-
-efibootmgr --create --disk /dev/nvme0n1p2 --label "ArchLinux" --part 1 --loader '\EFI\arch.efi' --verbose -a
+efibootmgr --create --disk "$install_drive"p2 --label "ArchLinux" --part 1 --loader '\EFI\arch.efi' --verbose -a
 # NETWORKING:
 # install ssh
 echo "..setting ssh"
