@@ -205,7 +205,7 @@ arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/ar
 echo "..running third script: drivers, settings, users and software"
 arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_third.sh)"
 
-arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_forth.sh)"
+# arch-chroot /mnt sh -c "$(curl -fsSL https://raw.githubusercontent.com/finnrr/archvm/main/install_forth.sh)"
 # shred password file
 shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
 
