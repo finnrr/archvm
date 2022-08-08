@@ -20,7 +20,7 @@ echo "..giving root zpresto"
 git clone --recursive https://github.com/sorin-ionescu/prezto.git "${ZDOTDIR:-$HOME}/.zprezto"
 echo 'source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"' >> /root/.config/zsh/.zshrc
 /root/.config/zsh/.zprezto/init.zsh
-sed -i "s|sorin|skwp|g" /root/.config/zsh/.zpreztorc
+sed -i "s|'sorin'|'skwp'|g" /root/.config/zsh/.zpreztorc
 
 # default dirs
 rm /etc/skel/.* -f
@@ -98,12 +98,6 @@ EOL
 
 
 
-# add to shell :
-# if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]; then
-#   exec sway
-# fi
 
 
-fonts
-Basic: ttf-liberation ttf-dejavu
-Full Unicode coverage, KDE: noto-fonts noto-fonts-emoji noto-fonts-cjk
+
