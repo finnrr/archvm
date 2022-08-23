@@ -211,3 +211,5 @@ shred --verbose -u --zero --iterations=3 /mnt/root/install_vars.txt
 
 # umount -R -l /mnt
 # reboot
+#
+
