@@ -100,4 +100,3 @@ EOF
 #   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"      
 # fi
 
-
